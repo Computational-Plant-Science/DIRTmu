@@ -18,7 +18,7 @@ conda env create -f hairyroots_py2718_64.yml
 # Running the sample file
 To process the sample image from the command line type:
 ```bash
-python hairyroots.py -i /sample/TAKFA3-n3-1_Classes.tiff -o /sample/ --cost_type rms --w_mind 10 --w_len 5 --id_root 3 --id_roothair 1 --id_background 2 --pixel_size 1.72 -p 
+python hairyroots.py -i sample/TAKFA3-n3-1_Classes.tiff -o sample/ --cost_type rms --w_mind 10 --w_len 5 --id_root 3 --id_roothair 1 --id_background 2 --pixel_size 1.72 -p 
 ```
 
 # Help
