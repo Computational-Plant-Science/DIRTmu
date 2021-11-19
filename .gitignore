@@ -1,0 +1,4 @@
+*.pyc
+samples/
+venv
+.vscode
