@@ -2,28 +2,21 @@
 """
 This program creates candidates of root hairs
 """
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-import rh_plot
+
 
 import numpy as np
 import warnings
 import networkx as nx
 from lines import line
 from scipy.interpolate import splprep, splev
-from sklearn.neighbors import NearestNeighbors
 from scipy import signal
 from scipy import interpolate
 from collections import defaultdict
-from itertools import combinations, product, groupby
+from itertools import product, groupby
 from operator import itemgetter
 import graph_tool.all as gt
-import k_shortest_paths as ksp
-import sys
 import os
 import psutil
-import time
 
 def pipeline(graph, segments):
     
