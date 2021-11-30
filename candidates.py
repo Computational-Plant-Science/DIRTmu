@@ -19,9 +19,7 @@ import os
 import psutil
 
 def pipeline(graph, segments):
-    
-    set_weights(graph, segments)
-    
+        
     # Create subgraphs for each component of connected roothairs
     comp, hist = gt.label_components(graph)
     candidates = {}
@@ -51,52 +49,6 @@ def pipeline(graph, segments):
         print " - "+str(len(candidates[i_comp]))+" candidates; memory use: "+ str(round(memoryUse,4))   
 
     return candidates, dummies
-
-def set_weights(graph, segments):
-    # Create internal edge property map for weights
-    # Weights are based on length of fitted curve
-
-    # Nodes are tip, branches or branching-points
-    # Branches do not act as edges
-    #   Edges connect all types of nodes
-    #   including tips to branching-points
-     
-    graph.edge_properties['weight'] = graph.new_edge_property('double')
-
-    # For all edges in graph
-    for e in graph.edges():                                     
-
-        v_src = e.source()
-        v_trg = e.target()
-        
-        if v_src.out_degree() == 2:                             # If source vertex is branch segment
-            nbrs = list(v_src.all_neighbours())                 
-            path = [nbrs[0], v_src, nbrs[1]]     
-        elif v_trg.out_degree() == 2:                           # If target vertex is branch segment
-            nbrs = list(v_trg.all_neighbours())
-            path = [nbrs[0],v_trg, nbrs[1]]
-        else:                                                   # Else not part of branch segment
-            path = [v_src, v_trg]
-
-        # Map to vertices to segment labels
-        path = [graph.vertex_properties['label'][v] for v in path]
-            
-        candidate = Candidate(path, segments)
-        candidate.fitCurve(is_dummy=True)
-        
-        # Calculate weight
-        # If it is edge to/from a branch segment only half 
-        # length of branch segments is used as weight
-        # Else: Full length of edge if  tip -> branching-point
-        #                               tip -> tip
-        #                               branching-point -> branching-point
-        if v_src.out_degree() == 2 or v_trg.out_degree() == 2: 
-            weight = candidate.curve.length()/2.
-        else: 
-            weight = candidate.curve.length()
-        
-        # Safe in edge property map
-        graph.edge_properties['weight'][e] = weight
 
 class CandidateGenerator:
 
