@@ -385,7 +385,7 @@ class Candidate:
             y_diam_new = f(x_diam)
             
             y_diam_adjusted = np.array(y_diam)-np.array(y_diam_new)
-            y_diam_adjusted = [max(0.25, 1.0+v) for v in y_diam_adjusted]
+            y_diam_adjusted = [max(1.0, v) for v in y_diam_adjusted]
             
             w = 1./np.array(y_diam_adjusted)
         
