@@ -2,7 +2,10 @@
 """
 This program creates candidates of root hairs
 """
-
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gs
 
 import numpy as np
 import warnings
@@ -308,53 +311,148 @@ class Candidate:
             return 0.0
 
     def fitCurve(self, is_dummy=False):
-        x, y = np.array(zip(*self.pixels))
-        if is_dummy:
-            w = np.ones_like(self.diameter,dtype=float)
-        else:
-            
-            x_diam = range(len(self.diameter))
-            y_diam = self.diameter
-            
-            window_length = min(len(y_diam), 51)
-            if window_length % 2 == 0:
-                window_length = window_length - 1
-            polyorder = min(window_length-1,3)
-            y_diam_hat = signal.savgol_filter(y_diam, window_length, polyorder)
 
-            peaks, props = signal.find_peaks(-y_diam_hat)
-            peaks = list(peaks)
-                        
-            if len(peaks) > 0:
-                if not peaks[0] == 0:
-                    peaks.insert(0, 0)
-                if not peaks[-1] == x_diam[-1]:
-                    peaks.append(x_diam[-1])
-            else:
-                peaks = [x_diam[0], x_diam[-1]]
-                
-            f = interpolate.interp1d(peaks, [y_diam_hat[p] for p in peaks])
-            y_diam_new = f(x_diam)
-            
-            y_diam_adjusted = np.array(y_diam)-np.array(y_diam_new)
-            y_diam_adjusted = [max(1.0, v) for v in y_diam_adjusted]
-            
-            w = 1./np.array(y_diam_adjusted)
+        # x,y, coordinates
+        x, y = np.array(zip(*self.pixels))
         
-        s = len(w)
+        # Index and medial axis (MA) distance values (distance = 1/2*diameter)
+        x_dist = range(len(self.diameter))      
+        y_dist = [0.5*d for d in self.diameter]
+        
+        # Smooth distance values with Savitzky Golay filter
+        window_length = min(len(x_dist), 7)
+        if window_length % 2 == 0:
+            window_length = window_length - 1
+        polyorder = 2
+        y_dist_hat = signal.savgol_filter(y_dist, window_length, polyorder)
+        
+        # Find local minima in MA distance
+        y_dist_temp = list(y_dist_hat)
+        y_dist_temp[0] = max(y_dist_temp)   # Boundary conditions for find local minimia at boundaries
+        y_dist_temp[-1] = max(y_dist_temp)
+        prominence_factor = 0.4
+        local_minima, props = signal.find_peaks(-np.array(y_dist_temp),prominence=np.array(y_dist_temp)*prominence_factor,width=2, rel_height=0.5)
+        local_minima = list(local_minima)
+
+        # Pad additional local minima at boundaries
+        local_minima_temp = list(local_minima)
+        if len(local_minima_temp) > 0:
+            if not local_minima_temp[0] == 0:
+                local_minima_temp.insert(0, 0)
+            if not local_minima_temp[-1] == x_dist[-1]:
+                local_minima_temp.append(x_dist[-1])
+        else:
+            local_minima_temp = [x_dist[0], x_dist[-1]]
+
+        # Find actual distance based on local minima
+        if len(local_minima_temp) > 1:
+            f = interpolate.interp1d(local_minima_temp, [y_dist_hat[p] for p in local_minima_temp])
+            y_dist_new = f(x_dist)
+        
+        # Excess distance based on actual distance
+        y_dist_adjusted = np.array(y_dist)-np.array(y_dist_new) # In pixels 
+
+        # Calculate weights
+        y_dist_adjusted = [max(0.5 , (0.5+v)) for v in y_dist_adjusted] # In micrometers
+        w = 1./np.array(y_dist_adjusted)
+
+        # Smoothing parameters
+        s = len(w)#*1.5#+np.sqrt(2*len(w))
+        s_min = len(w)*0.1#-np.sqrt(2*len(w))
         w[0] = 1000
         w[-1] = 1000
         
         try:
-            tck, u = splprep([x,y],w=w,s=s)
-            new_points = splev(u, tck)
-            #new_points[0][0] = x[0]
-            #new_points[0][-1] = x[-1]
-            #new_points[1][0] = y[0]
-            #new_points[1][-1] = y[-1]
+            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s, full_output=1) # In micrometers
+            new_points = np.array(splev(u, tck)) # In pixels 
+            
+            distances = (np.array([x,y])-new_points)**2
+            distances = distances.sum(axis=0)
+            distances = np.sqrt(distances)
+
+            y_dist_adjusted_fin = [max(0.5, (0.5+min(v))) for v in zip(np.array(y_dist)-np.array(y_dist_new),distances)] # In micrometers
+            w = 1./np.array(y_dist_adjusted_fin)
+            w[0] = 1000
+            w[-1] = 1000
+
+            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s, full_output=1) # In micrometers
+            new_points = np.array(splev(u, tck)) # In pixels 
+
+            distances = (np.array([x,y])-new_points)**2
+            distances = distances.sum(axis=0)
+            distances = np.sqrt(distances)
+            
+            #print np.count_nonzero(y_dist_adjusted-distances <= -1.0), " of ", len(w)
+            """
+            while np.count_nonzero(distances - np.array(y_dist_adjusted) >= 1.0) > 0.0*len(y_dist_adjusted) and s>s_min:
+                s = 0.9*s
+                (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s,full_output=1)
+                new_points = np.array(splev(u, tck)) # In pixels 
+                distances = (np.array([x,y])-new_points)**2
+                distances = distances.sum(axis=0)
+                distances = np.sqrt(distances)
+            """
+            
             self.curve = line(new_points[0],new_points[1])
+
+            if len(x) > 175 and not is_dummy:
+            #if np.count_nonzero(distances - np.array(y_dist) > 0.5) > 0 and not is_dummy:
+                x_dist = np.array(x_dist)
+
+                fig = Figure(figsize=(12.8,9.6))
+                canvas = FigureCanvasAgg(fig)
+                spec = gs.GridSpec(nrows=3, ncols=2, width_ratios=[1, 1], figure=fig)
+
+                ax = fig.add_subplot(spec[:,0])
+                ax.plot(y,x,'.')
+                ax.plot(new_points[1],new_points[0])
+                ax.plot([y[0],y[-1]],[x[0],x[-1]],'y.')
+                ind_1 = np.where(np.array(self.pixel_type)==1)[0]
+                ind_3 = np.where(np.array(self.pixel_type)==3)[0]
+
+                ax.plot(y[ind_1],x[ind_1],'y.')
+                ax.plot(y[ind_3],x[ind_3],'r.')
+                ax.plot(y[np.array(local_minima)], x[np.array(local_minima)], 'gx')
+                ax.invert_yaxis()
+                ax.axis('equal')
+
+                ax = fig.add_subplot(spec[0,1])
+                ax.plot(x_dist,y_dist)
+                
+                #ax.plot(x_dist[np.array(peaks)], np.array(y_dist)[np.array(peaks)], 'g.')
+                ax.plot(x_dist[ind_1],np.array(y_dist)[ind_1],'y.')
+                ax.plot(x_dist[ind_3],np.array(y_dist)[ind_3],'r.')
+                ax.vlines(x=local_minima, ymin=np.array(y_dist)[local_minima] + props["prominences"], ymax = np.array(y_dist)[local_minima], color = "C1")
+                #ax.hlines(y=props["width_heights"], xmin=x_dist[np.array(peaks)]-0.5*np.array(y_dist)[np.array(peaks)], xmax=x_dist[np.array(peaks)]+0.5*np.array(y_dist)[np.array(peaks)], color = "C1")
+                ax.hlines(y=-props["width_heights"], xmin=props["left_ips"], xmax=props["right_ips"], color = "C1")
+
+                
+                ax = fig.add_subplot(spec[1,1])
+                ax.plot(x_dist,y_dist_hat)
+                ax.plot(x_dist,y_dist_new,'k-',linewidth=0.5)
+                ax.plot(x_dist[np.array(local_minima)], np.array(y_dist_hat)[np.array(local_minima)], 'g.')
+                ax.plot(x_dist[ind_1],np.array(y_dist_hat)[ind_1],'y.')
+                ax.plot(x_dist[ind_3],np.array(y_dist_hat)[ind_3],'r.')
+                ax.vlines(x=local_minima, ymin=np.array(y_dist_hat)[local_minima] + props["prominences"], ymax = np.array(y_dist_hat)[local_minima], color = "C1")
+                ax.hlines(y=-props["width_heights"], xmin=props["left_ips"], xmax=props["right_ips"], color = "C1")
+                
+
+                ax = fig.add_subplot(spec[2,1])
+                ax.plot(x_dist,np.array(y_dist),color='red')
+                ax.plot(x_dist,np.array(y_dist_adjusted_fin),color='orange')
+                ax.plot(x_dist,np.array(y_dist_adjusted),color='yellow')
+                ax.plot(x_dist,distances,'k')
+                ax.plot(x_dist[ind_1],np.array(y_dist_adjusted)[ind_1],'y.')
+                ax.plot(x_dist[ind_3],np.array(y_dist_adjusted)[ind_3],'r.')
+                ax.plot(x_dist[np.array(local_minima)], np.array(y_dist_adjusted)[np.array(local_minima)], 'gx')
+
+                fig.savefig("/mnt/c/Projects/Roothair/Images/temp/"+str(id(self))+".png",dpi=150, bbox_inches='tight')
+
         except:
             self.curve = line(x,y)
+        
+
+
         return True
 
 class ReferenceValues:
