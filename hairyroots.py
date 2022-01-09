@@ -82,7 +82,7 @@ def run_pipeline(args):
                                        is_prune=args.is_prune,
                                        is_close_gaps=args.is_close_gaps)
 
-    ma, ma_dist, dist_to_root = prep.run(data)
+    ma, ma_dist, dist_to_root, data = prep.run(data)
 
     area_roothair = np.count_nonzero(data==args.id_roothair)
     area_root = np.count_nonzero(data==args.id_root)

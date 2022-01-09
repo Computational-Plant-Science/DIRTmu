@@ -67,7 +67,7 @@ class Preprocessing:
         dist_to_root = self.get_dist_to_root(classes,skel,self.id_root)
         
         self.skel, self.dist_on_skel, self.dist_to_root = skel, dist_on_skel, dist_to_root        
-        return skel, dist_on_skel, dist_to_root
+        return skel, dist_on_skel, dist_to_root, classes
     
     def out(self,path):
         pass
