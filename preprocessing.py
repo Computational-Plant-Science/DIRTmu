@@ -31,7 +31,7 @@ class Preprocessing:
 
         # Close small gaps and remove small clusters
         if self.is_close_gaps:
-            classes = self.close_gaps(classes, size=2)
+            classes = self.close_gaps(classes, size=1)
         
         if self.is_remove_clusters:
             # Median root hair thickness
