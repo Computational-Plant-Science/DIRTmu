@@ -477,7 +477,7 @@ def main():
                         help="Type of curvature measure")
     
     parser.add_argument("--cost_type", dest="cost_type", type=str, required=False,
-                        default='mean', choices=['mean', 'exp', 'rms', 'pow3', 'pow4', 'geom'], 
+                        default='rms', choices=['mean', 'exp', 'rms', 'pow3', 'pow4', 'geom'], 
                         help="Way to summarize optimization objectives.")
 
     parser.add_argument("--n_levels", dest="n_levels", type=int, required=False,
