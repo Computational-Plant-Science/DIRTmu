@@ -29,11 +29,17 @@ class Preprocessing:
         '''
         # classes = self.transform(classes)
 
+        # Remove small root components / keep only largest root component
+        classes = self.removeSmallRootComponents(classes, id_root=self.id_root, id_background=self.id_background)
+
         # Close small gaps and remove small clusters
         if self.is_close_gaps:
             classes = self.close_gaps(classes, size=1)
         
         if self.is_remove_clusters:
+            # Keeps only largest root part
+            
+
             # Median root hair thickness
             rh_thickness = self.get_median_rh_thickness(classes,self.id_roothair)
             
@@ -71,6 +77,32 @@ class Preprocessing:
     
     def out(self,path):
         pass
+    
+    def removeSmallRootComponents(self, img, id_root=1, id_background=2):
+        # Adapted from RAG - Root hair detection
+
+        rootImg = np.zeros_like(img)
+        rootPos = np.where(img==id_root)
+        rootImg[rootPos]=1
+        
+        largeLabelIdx=0
+        bigComp=0
+        labelImg = morph.label(rootImg, background=0, connectivity=1)
+        #add all big components  !!!
+        for i in np.unique(labelImg):
+            if i!=0:
+                comp=np.where(labelImg==i)
+                if len(comp[0])>bigComp:
+                    largeLabelIdx = i
+                    bigComp=len(comp[0])
+
+        # Set all root pixels to background  
+        imgNew = np.array(img)
+        imgNew[rootPos] = id_background
+        # Set large root component to root
+        imgNew[np.where(labelImg==largeLabelIdx)] = id_root
+
+        return imgNew
 
     def close_gaps(self, classes, size=1):
         '''
