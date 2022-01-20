@@ -266,13 +266,15 @@ def rollingSum(x, start, stop, windowSizePxl=1000, step=1):
 
 def segmentRootComponents(labelImg, rootIdx):
 
+    newRootIdx = 1
+
     # Extract root pixels to binary image
     rootImg=np.zeros_like(labelImg)
-    rootImg[np.where(labelImg == rootIdx)] = labelImg[np.where(labelImg == rootIdx)]
+    rootImg[np.where(labelImg == rootIdx)] = newRootIdx #labelImg[np.where(labelImg == rootIdx)]
     #rootImg = selectLargestComponent(rootImg)  
 
     # Prune and reconstruct main root
-    MAImg,root_diameter=extractDiameter(rootImg, rootIdx)
+    MAImg,root_diameter=extractDiameter(rootImg, newRootIdx)
     mainRootImg = reconstructRoot(MAImg)
     mainRootImg = selectLargestComponent(mainRootImg)
 
