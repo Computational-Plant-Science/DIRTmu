@@ -15,13 +15,14 @@ from sklearn.neighbors import NearestNeighbors
 
 class Preprocessing:
     
-    def __init__(self, id_root=1, id_background=2, id_roothair=3, is_close_gaps=True, is_remove_clusters=True, is_prune=True):
+    def __init__(self, max_distance, id_root=1, id_background=2, id_roothair=3, is_close_gaps=True, is_remove_clusters=True, is_prune=True):
         self.id_root = id_root
         self.id_background = id_background
         self.id_roothair = id_roothair
         self.is_close_gaps = is_close_gaps
         self.is_remove_clusters = is_remove_clusters
         self.is_prune = is_prune
+        self.max_distance = max_distance
         
     def run(self,classes):
         '''
@@ -31,6 +32,9 @@ class Preprocessing:
 
         # Remove small root components / keep only largest root component
         classes = self.removeSmallRootComponents(classes, id_root=self.id_root, id_background=self.id_background)
+
+        # Removes root hair clusters far away from root
+        classes = self.removeFarRootHairs(classes, max_distance=self.max_distance, id_root=self.id_root, id_background=self.id_background, id_roothair=self.id_roothair)
 
         # Close small gaps and remove small clusters
         if self.is_close_gaps:
@@ -80,6 +84,7 @@ class Preprocessing:
     
     def removeSmallRootComponents(self, img, id_root=1, id_background=2):
         # Adapted from RAG - Root hair detection
+        # Removes all components of root pixels except for the largest components
 
         rootImg = np.zeros_like(img)
         rootPos = np.where(img==id_root)
@@ -102,6 +107,32 @@ class Preprocessing:
         # Set large root component to root
         imgNew[np.where(labelImg==largeLabelIdx)] = id_root
 
+        return imgNew
+    
+    def removeFarRootHairs(self, img, max_distance=50, id_root=1, id_background=2, id_roothair=3):
+        # Removes components of root hair components (connected components) if their distance to the root is larger than max_distance
+        # i.e. floating root hair pixels (such as from noisy classification) are removed
+        
+        roothairImg = np.zeros_like(img)
+        roothairPos = np.where(img==id_roothair)
+        roothairImg[roothairPos]=1
+
+        edge = self.find_edge(img, id_root)       # pixel coordinates of edge of main root
+        nbrs = NearestNeighbors(n_neighbors=1)
+        nbrs.fit(edge)
+            
+        imgNew = np.array(img)
+
+        labelImg = morph.label(roothairImg, background=0, connectivity=1)
+        for i in np.unique(labelImg):
+            if i!=0:
+                comp = np.where(labelImg==i)
+                coordinates = zip(*comp)
+                # distance to edge and indices (location in 'edge')
+                edgeDist, edgeIDs = nbrs.kneighbors(coordinates)
+                if min(edgeDist) > max_distance:
+                    imgNew[comp] = id_background
+                    
         return imgNew
 
     def close_gaps(self, classes, size=1):

@@ -76,7 +76,8 @@ def run_pipeline(args):
     
     # 2. Prepocess and put into correct format
     time_intermediate = time.time()
-    prep = preprocessing.Preprocessing(id_root=args.id_root,
+    prep = preprocessing.Preprocessing(max_distance=args.max_dist/args.pixel_size, # max distance in pixels
+                                       id_root=args.id_root,
                                        id_background=args.id_background,
                                        id_roothair=args.id_roothair,
                                        is_prune=args.is_prune,
@@ -459,6 +460,9 @@ def main():
     '''
     Preprocessing parameters
     '''
+    parser.add_argument("--max_dist", dest="max_dist", type=float, required=False,
+                        default=50, help="Maximum distance of root hair clusters to root in microns.")
+
     parser.add_argument("--thresh_d2r", dest="thresh_dist_to_root", type=int, required=False,
                         default=10, help="Minimum distance of root hair to root")
 
