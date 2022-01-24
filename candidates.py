@@ -350,52 +350,44 @@ class Candidate:
             y_dist_new = f(x_dist)
         
         # Excess distance based on actual distance
-        y_dist_adjusted = np.array(y_dist)-np.array(y_dist_new) # In pixels 
+        y_dist_adjusted = np.array(y_dist)-np.array(y_dist_new) 
 
         # Calculate weights
-        y_dist_adjusted = [max(0.5 , (0.5+v)) for v in y_dist_adjusted] # In micrometers
+        # 0.5 is standard deviation of distance between spline and medial axis (=noise) 
+        y_dist_adjusted = [max(0.5 , (0.5+v)) for v in y_dist_adjusted]
         w = 1./np.array(y_dist_adjusted)
 
         # Smoothing parameters
-        s = len(w)#*1.5#+np.sqrt(2*len(w))
-        s_min = len(w)*0.1#-np.sqrt(2*len(w))
+        s = len(w)
         w[0] = 1000
         w[-1] = 1000
         
         try:
-            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s, full_output=1) # In micrometers
-            new_points = np.array(splev(u, tck)) # In pixels 
-            
+            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s, full_output=1) 
+            new_points = np.array(splev(u, tck)) 
             distances = (np.array([x,y])-new_points)**2
             distances = distances.sum(axis=0)
             distances = np.sqrt(distances)
 
-            y_dist_adjusted_fin = [max(0.5, (0.5+min(v))) for v in zip(np.array(y_dist)-np.array(y_dist_new),distances)] # In micrometers
-            w = 1./np.array(y_dist_adjusted_fin)
-            w[0] = 1000
-            w[-1] = 1000
+            # Set local threshold to halfway between expected and maximum distance
+            halfway = 0.5*(np.array(y_dist) - np.array(y_dist_adjusted)) + np.array(y_dist_adjusted)
 
-            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s, full_output=1) # In micrometers
-            new_points = np.array(splev(u, tck)) # In pixels 
-
-            distances = (np.array([x,y])-new_points)**2
-            distances = distances.sum(axis=0)
-            distances = np.sqrt(distances)
-            
-            #print np.count_nonzero(y_dist_adjusted-distances <= -1.0), " of ", len(w)
-            """
-            while np.count_nonzero(distances - np.array(y_dist_adjusted) >= 1.0) > 0.0*len(y_dist_adjusted) and s>s_min:
-                s = 0.9*s
+            # Increase weights locally until all spline points are close enough to medial axis
+            while np.count_nonzero(distances - halfway >= 0.0) > 0:#0.90*len(y_dist_adjusted):
+                inds = np.where(distances - halfway >= 0.0)
+                w[inds] = w[inds] * 1.1
                 (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s,full_output=1)
                 new_points = np.array(splev(u, tck)) # In pixels 
                 distances = (np.array([x,y])-new_points)**2
                 distances = distances.sum(axis=0)
                 distances = np.sqrt(distances)
-            """
-            
-            self.curve = line(new_points[0],new_points[1])
 
-            if len(x) > 175 and not is_dummy:
+            
+            (tck, u), fp, ier, msg = splprep([x,y],w=w,s=s,full_output=1)
+            self.curve = line(new_points[0],new_points[1])
+            
+            """
+            if len(x) > 1500 and not is_dummy:
             #if np.count_nonzero(distances - np.array(y_dist) > 0.5) > 0 and not is_dummy:
                 x_dist = np.array(x_dist)
 
@@ -439,7 +431,7 @@ class Candidate:
 
                 ax = fig.add_subplot(spec[2,1])
                 ax.plot(x_dist,np.array(y_dist),color='red')
-                ax.plot(x_dist,np.array(y_dist_adjusted_fin),color='orange')
+                ax.plot(x_dist,halfway,color='orange')
                 ax.plot(x_dist,np.array(y_dist_adjusted),color='yellow')
                 ax.plot(x_dist,distances,'k')
                 ax.plot(x_dist[ind_1],np.array(y_dist_adjusted)[ind_1],'y.')
@@ -447,7 +439,7 @@ class Candidate:
                 ax.plot(x_dist[np.array(local_minima)], np.array(y_dist_adjusted)[np.array(local_minima)], 'gx')
 
                 fig.savefig("/mnt/c/Projects/Roothair/Images/temp/"+str(id(self))+".png",dpi=150, bbox_inches='tight')
-
+                """
         except:
             self.curve = line(x,y)
         
