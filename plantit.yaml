@@ -1,0 +1,67 @@
+name: DIRT/mu
+author: Peter Pietrzyk
+public: True
+image: docker://computationalplantscience/dirtmu
+commands: python hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR
+jobqueue:
+  walltime: "10:00:00"
+  memory: "8GB"
+  processes: 1
+  cores: 1
+input:
+  kind: files
+  filetypes:
+    - tif
+    - tiff
+output:
+  include:
+    patterns:
+      - csv                             # include csv files
+      - png                             # and png files
+  exclude:
+    patterns:
+      - pkl                             # don't include pickle files
+params:
+  - name: n_levels                      # number of levels for simulated annealing
+    type: number
+    default: 200
+    step: 1
+    min: 1
+    max: 1000
+  - name: w_mind                        # weight for minimum distance
+    type: number
+    default: 1
+    step: 1
+    min: 0
+    max: 10
+  - name: w_len                         # weight for length (=completeness)
+    type: number
+    default: 1
+    step: 1
+    min: 0
+    max: 10
+  - name: w_curve                       # weight for curvature
+    type: number
+    default: 1
+    step: 1
+    min: 0
+    max: 10
+  - name: id_root                       # index for root pixels
+    type: number
+    default: 3
+    step: 1
+    min: 0
+    max: 10
+  - name: id_background                 # index for image background
+    type: number
+    default: 2
+    step: 1
+    min: 0
+    max: 10
+  - name: id_roothair                   # index for root hair pixels
+    type: number
+    default: 1
+    step: 1
+    min: 0
+    max: 10
+
