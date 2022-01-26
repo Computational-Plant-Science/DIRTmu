@@ -9,6 +9,7 @@ jobqueue:
   processes: 1
   cores: 1
 input:
+  path: /iplant/home/peterpietrzyk/dirtmu/samples/TAKFA1-c1-1_Classes.tiff
   kind: files
   filetypes:
     - tif
