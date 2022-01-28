@@ -2,7 +2,7 @@ name: DIRT/mu
 author: Peter Pietrzyk
 public: True
 image: docker://computationalplantscience/dirtmu
-commands: python hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR
+commands: source /usr/local/bin/_activate_current_env.sh && python hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR
 jobqueue:
   walltime: "10:00:00"
   memory: "8GB"
