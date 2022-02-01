@@ -23,3 +23,6 @@ ARG MAMBA_DOCKERFILE_ACTIVATE=1
 RUN pip uninstall -y matplotlib && \
     python -m pip install --upgrade pip && \
     pip install matplotlib
+
+RUN chmod +x /opt/code/activate_env.sh
+ENV BASH_ENV=/opt/code/activate_env.sh
