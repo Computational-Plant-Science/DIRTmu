@@ -2,6 +2,7 @@ name: DIRT/mu
 author: Peter Pietrzyk
 public: True
 doi: 10.1002/essoar.10508833.1
+shell: bash
 image: docker://computationalplantscience/dirtmu
 commands: python /opt/code/hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR
 jobqueue:
