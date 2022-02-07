@@ -21,7 +21,6 @@ class Optimize():
     def __init__(self, cost=None, nIterations=200):
         self.T_start = 1.0
         self.T_min = 0.000000001
-        self.n_runs = 1
         self.cost = cost
         self.nIterations = nIterations
         
@@ -78,12 +77,11 @@ class Optimize():
             print ' - memory use: '+ str(round(memoryUse,4))
             
             start_time = time.time()
-            # Run optimization n_run times
-            for _ in range(self.n_runs):
-                best_sol, best_cost, ratio_complete, bestMetricsNorm = sa.anneal()
-                memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-                print ' - memory use: '+ str(round(memoryUse,4))
-                #summary[i_run+1] = {'n':n_candidates, 'T':T_arr, 'cost':cost_arr, 'best':best_arr}               
+            # Run optimization
+            best_sol, best_cost, ratio_complete, bestMetricsNorm = sa.anneal()
+            memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
+            print ' - memory use: '+ str(round(memoryUse,4))
+            #summary[i_run+1] = {'n':n_candidates, 'T':T_arr, 'cost':cost_arr, 'best':best_arr}               
             
             # Final solution  
             sol_out = np.where(best_sol)[0]
