@@ -52,19 +52,21 @@ class Optimize():
             # Create random state
             shuffleState(state,nCandidates)
 
-            # Get values for cooling schedule
-            finalProb = 0.01/nCandidates # 10% chance of upward move being accepted at last temperature level
-            csMaker = CoolingScheduleMaker(state, costFunction=self.cost, initialProb=0.95, finalProb=finalProb)
-            csMaker.simulate(int(0.2*self.nIterations*nCandidates))  # 20% of iterations in actual optimization
-            normArray = csMaker.normalization()                 # calculates avergae values of sub costs for normalization
+            # Get values for cooling schedule by simulating random states
+            finalProb = 0.01/nCandidates                                # 1% chance of upward move being accepted at last temperature level
+            initialProb = 0.95                                          # 95% chance of upward move being accepted at initial temperature level
+            csMaker = CoolingScheduleMaker(state, costFunction=self.cost, initialProb=initialProb, finalProb=finalProb) # object to make cooling schedule
+            csMaker.simulate(int(0.2*self.nIterations*nCandidates))     # 20% of iterations in actual optimization
+            normArray = csMaker.normalization()                         # calculates avergae values of sub costs for normalization
+            self.cost.setNormValues(normArray)                          # set normalization value in cost function
+            csMaker.recalculateCost()                                   # calculate costs with normalization
+            csMaker.calculateUpwardCosts()                              # calculate average upword cost
+            initialTemp = csMaker.getInitialTemp()                      # calculate initial temperature
+            alpha = csMaker.getAlpha(initialTemp, self.nIterations)     # calculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, self.nIterations)   # calculate final temperature
+            averageCost = csMaker.initialCost()                         # calcuulate initial cost from average of all costs
+
             print("norm curvature: "+str(1./normArray[0])+", norm length: "+str(1./normArray[1])+". norm distance: "+str(1./normArray[2]))
-            self.cost.setNormValues(normArray)                  # set normalization value in cost function
-            csMaker.recalculateCost()                           # calculate costs with normalization
-            csMaker.calculateUpwardCosts()
-            initialTemp = csMaker.getInitialTemp()
-            alpha = csMaker.getAlpha(initialTemp, self.nIterations)
-            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, self.nIterations)
-            averageCost = csMaker.initialCost()
             print "averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha)
 
 
