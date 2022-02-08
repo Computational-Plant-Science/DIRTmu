@@ -401,6 +401,7 @@ def run_pipeline(args):
     # ******************
     # 9. Plot results
     # ******************
+    time_intermediate = time.time()
     if args.print_all:
         rh_plot.plot_results([c.curve for c in inliers], data, os.path.join(args.output_path, experiment_name+'_roothairs.png'))
         rh_plot.plot_results([c.curve for c in outliers], data, os.path.join(args.output_path, experiment_name+'_outliers.png'))
@@ -408,6 +409,9 @@ def run_pipeline(args):
                                 edge_info['edge_classes'], edge_info['edge_segments'], 
                                 edge_info['edge_position'],  os.path.join(args.output_path, experiment_name+'_density.png'))
 
+    elapsed_time = time.time() - time_intermediate
+    meta_data['time_plot'] = elapsed_time
+    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
 
     # *************************
     # 10. Collect Meta Data
