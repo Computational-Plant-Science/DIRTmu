@@ -78,7 +78,7 @@ class Optimize():
             
             start_time = time.time()
             # Run optimization
-            best_sol, best_cost, ratio_complete, bestMetricsNorm = sa.anneal()
+            best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
             print ' - memory use: '+ str(round(memoryUse,4))
             #summary[i_run+1] = {'n':n_candidates, 'T':T_arr, 'cost':cost_arr, 'best':best_arr}               
@@ -112,8 +112,25 @@ class Optimize():
         
         memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
         print ' - memory use: '+ str(round(memoryUse,4))
-            
-        return roothair_paths, best_cost, ratio_complete, bestMetricsNorm
+        
+        sa_parameters = {'SA_finalProb':finalProb,
+                         'SA_initialProb':initialProb,
+                         'SA_normCurvature': normArray[0],
+                         'SA_normLength': normArray[1],
+                         'SA_normDistance': normArray[2],
+                         'SA_initialTemp': initialTemp,
+                         'SA_alpha': alpha,
+                         'SA_finalTemp': finalTemp,
+                         'SA_averageCost': averageCost,
+                         'SA_nIterations': n_iterations}
+
+        solution_summary = {'SA_bestCost':best_cost,
+                         'SA_bestCurvatureCost': bestMetricsNorm[0],
+                         'SA_bestLengthCost': bestMetricsNorm[1],
+                         'SA_bestDistanceCost': bestMetricsNorm[2],
+                         'SA_ratioComplete': ratio_complete}
+
+        return roothair_paths, solution_summary, sa_parameters
 
 def shuffleState(state, n=100):
 
@@ -231,7 +248,7 @@ class SimulatedAnnealing:
         # Uncomment for plotting images:
         #return best_sol, best_cost, ratio_complete, bestMetricsNorm, solutions_arr, cost_arr, metrics_arr
 
-        return best_sol, best_cost, ratio_complete, bestMetricsNorm
+        return best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations
         
 
 

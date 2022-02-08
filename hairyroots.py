@@ -312,7 +312,8 @@ def run_pipeline(args):
 
     optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
     
-    roothair_paths, best_cost, ratio_complete, bestMetricsNorm = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list)
+    #roothair_paths, best_cost, ratio_complete, bestMetricsNorm = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list)
+    roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list)
 
     """
     # Plot individual steps 
@@ -367,7 +368,10 @@ def run_pipeline(args):
     summary['area_root'] = area_root
     summary['area_background'] = area_background
 
-    summary['ratio_completeness'] = ratio_complete
+    summary['ratio_completeness'] = solution_summary['SA_ratioComplete']
+    summary['len_inliers'] = sum([c.length() for c in inliers]) * args.pixel_size
+    summary['len_outliers'] = sum([c.length() for c in outliers]) * args.pixel_size
+
 
     elapsed_time = time.time() - time_intermediate
     meta_data['time_analysis'] = elapsed_time
@@ -410,6 +414,7 @@ def run_pipeline(args):
     # *************************
     meta_data['n_roothairs'] = len(inliers)
     meta_data['n_outliers'] = len(outliers)
+    
     time_total = time.time() - time_start
     meta_data['time_total'] = time_total
     print 'Total time: ' + time.strftime("%H:%M:%S", time.gmtime(time_total))
@@ -418,7 +423,11 @@ def run_pipeline(args):
         with open(os.path.join(args.output_path, experiment_name+'_meta.csv'), 'wb') as f:
             writer = csv.writer(f)
             for row in meta_data.iteritems():
+                writer.writerow(row)
+            for row in sa_parameters.iteritems():
                 writer.writerow(row)   
+            for row in solution_summary.iteritems():
+                writer.writerow(row)
 
 
     print " "
