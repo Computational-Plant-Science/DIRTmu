@@ -24,7 +24,7 @@ class Optimize():
         self.cost = cost
         self.nIterations = nIterations
         
-    def run(self, candInfo, conflictList, mergeList, adjacencyList, dummyConflictsList):
+    def run(self, candInfo, conflictList, mergeList, adjacencyList, dummyConflictsList, curvature_offset_dict, ref_value_offset_dict):
         
         pid = os.getpid()
         py = psutil.Process(pid)            
@@ -45,7 +45,9 @@ class Optimize():
                             mergeList=mergeList,
                             conflictList=conflictList,
                             adjacencyList=adjacencyList,
-                            dummyConflictsList=dummyConflictsList)
+                            dummyConflictsList=dummyConflictsList,
+                            curvature_offset_dict=curvature_offset_dict,
+                            ref_value_offset_dict=ref_value_offset_dict)
 
 
             # Create random state
@@ -262,7 +264,7 @@ class SimulatedAnnealing:
 
 
 class State:
-    def __init__(self, candInfo, mergeList, conflictList, adjacencyList, dummyConflictsList):
+    def __init__(self, candInfo, mergeList, conflictList, adjacencyList, dummyConflictsList, curvature_offset_dict, ref_value_offset_dict):
 
         self.candInfo = candInfo
         self.binaryList = np.zeros(len(candInfo.paths),dtype=int)  #sol is a binary 1D numpy array (e.g. sol = array([0,1,0,1,1]))
@@ -270,6 +272,8 @@ class State:
         self.conflictList = conflictList
         self.adjacencyList = adjacencyList
         self.dummyConflictsList = dummyConflictsList
+        self.curvature_offset_dict = curvature_offset_dict
+        self.ref_value_offset_dict = ref_value_offset_dict
 
         # Create a graph from path of each candidate
         self.candidate_graphs = []
@@ -343,7 +347,9 @@ class State:
 
         # Calcule difference in cost items
         self.cost_items_difference.extract(self.candInfo, 
-                                            self.candidate_graphs, 
+                                            self.candidate_graphs,
+                                            self.curvature_offset_dict,
+                                            self.ref_value_offset_dict,
                                             self.addedCandidates, 
                                             self.removedCandidates, 
                                             self.addedComponents, 
@@ -689,13 +695,31 @@ class CostItems:
 
 class CostItemDifference(CostItems):
 
-    def extract(self, candInfo, candidate_graphs, cand_add, cand_remove, comp_add, comp_remove, dum_add, dum_remove):
+    def extract(self, candInfo, candidate_graphs, curvature_offset_dict, ref_value_offset_dict, cand_add, cand_remove, comp_add, comp_remove, dum_add, dum_remove):
+        
+        # Compute offsets for merged/unmerged components
+        strain_offset = 0.
+        reference_offset = 0.
+        for c in comp_remove:
+            if len(c)>1:
+                for first, second in zip(c, c[1:]):
+                    strain_offset += curvature_offset_dict[(min(first, second),max(first, second))]
+                    reference_offset += ref_value_offset_dict[(min(first, second),max(first, second))]
+
+        for c in comp_add:
+            if len(c)>1:
+                for first, second in zip(c, c[1:]):
+                    strain_offset -= curvature_offset_dict[(min(first, second),max(first, second))]
+                    reference_offset -= ref_value_offset_dict[(min(first, second),max(first, second))]
+      
         # Curvature measure
         self.sum_strain_roothair = sum(candInfo.strain[cand_add]) \
-                                        - sum(candInfo.strain[cand_remove])
+                                        - sum(candInfo.strain[cand_remove]) \
+                                            + strain_offset
 
         self.sum_min_reference_strain = sum(candInfo.min_reference_strain[cand_add]) \
-                                        - sum(candInfo.min_reference_strain[cand_remove])
+                                        - sum(candInfo.min_reference_strain[cand_remove]) \
+                                            + reference_offset
         
         # Total length of remaining dummies measure
         self.sum_length_dummy = sum(candInfo.dummy_lengths[dum_add]) \
