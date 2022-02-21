@@ -8,7 +8,7 @@ logo: DIRTX-mu.png
 commands: python /opt/code/hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR
 jobqueue:
   walltime: "10:00:00"
-  memory: "8GB"
+  memory: "20GB"
   processes: 1
   cores: 4
 input:
