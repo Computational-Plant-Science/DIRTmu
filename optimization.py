@@ -432,7 +432,7 @@ class State:
         self.addedDummies = []
         self.removedDummies = []
 
-        self.cost_items_difference = CostItemDifference
+        self.cost_items_difference = CostItemDifference()
 
     def getChangesFromBinaryList(self, pos):
 
