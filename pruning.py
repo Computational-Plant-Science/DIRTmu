@@ -198,7 +198,7 @@ def prune(skel,distance):
 
     changed = True
     while changed:
-        print "cleaning up tips..."
+        print("cleaning up tips...")
     
         # number of neighbours on medial axis
         nneighbours = numOfNeighbours(skel,a)

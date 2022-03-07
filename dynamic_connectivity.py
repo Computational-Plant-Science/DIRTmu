@@ -174,34 +174,34 @@ if __name__ == '__main__':
     cc.addVertex(7)
     cc.addVertex(8)
 
-    print "Graph:"
-    print cc.components
-    print cc.vertices
+    print("Graph:")
+    print(cc.components)
+    print(cc.vertices)
 
-    print " "
-    print "Remove vertex 2"
+    print(" ")
+    print("Remove vertex 2")
     comp_add, comp_remove = cc.removeVertex(2)
-    print comp_add, comp_remove
-    print cc.components
-    print cc.vertices
+    print(comp_add, comp_remove)
+    print(cc.components)
+    print(cc.vertices)
 
-    print " "
-    print "Remove vertex 6"
+    print(" ")
+    print("Remove vertex 6")
     comp_add, comp_remove = cc.removeVertex(6)
-    print comp_add, comp_remove
-    print cc.components
-    print cc.vertices
+    print(comp_add, comp_remove)
+    print(cc.components)
+    print(cc.vertices)
 
-    print " "
-    print "Remove vertex 8"
+    print(" ")
+    print("Remove vertex 8")
     comp_add, comp_remove = cc.removeVertex(8)
-    print comp_add, comp_remove
-    print cc.components
-    print cc.vertices
+    print(comp_add, comp_remove)
+    print(cc.components)
+    print(cc.vertices)
 
-    print " "
-    print "Add vertex 2"
+    print(" ")
+    print("Add vertex 2")
     comp_add, comp_remove = cc.addVertex(2)
-    print comp_add, comp_remove
-    print cc.components
-    print cc.vertices
+    print(comp_add, comp_remove)
+    print(cc.components)
+    print(cc.vertices)

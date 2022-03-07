@@ -100,19 +100,19 @@ if __name__ == '__main__':
     path_3 = [7,8,9,10,11]
 
     g1 = Candidate_Graph(path_1)
-    print g1.get_path()
+    print(g1.get_path())
 
     g2 = Candidate_Graph(path_2)
-    print g2.get_path()
+    print(g2.get_path())
 
     g3 = Candidate_Graph(path_3)
-    print g3.get_path()
+    print(g3.get_path())
 
     g1.merge(g2)
     g1.merge(g3)
-    print g1.graph
-    print g1.get_path()
-    print g1.all_degree_one()
+    print(g1.graph)
+    print(g1.get_path())
+    print(g1.all_degree_one())
 
 
 

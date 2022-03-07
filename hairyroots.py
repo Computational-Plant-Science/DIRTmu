@@ -60,7 +60,7 @@ def run_pipeline(args):
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_0'] = elapsed_time
     
     # 1. Load data
@@ -72,7 +72,7 @@ def run_pipeline(args):
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_load'] = elapsed_time
     
     # 2. Prepocess and put into correct format
@@ -98,7 +98,7 @@ def run_pipeline(args):
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_preprocess'] = elapsed_time
     
     # 3. CREATE SEGMENTS OF MEDIAL AXIS
@@ -125,7 +125,7 @@ def run_pipeline(args):
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_segments'] = elapsed_time
     meta_data['n_tips'] = len(np.where(np.array(rh_segm.segmentType.values())==1)[0])
     meta_data['n_junctions'] = len(np.where(np.array(rh_segm.segmentType.values())>2)[0])
@@ -160,7 +160,7 @@ def run_pipeline(args):
 
     n_candidates = len(all_candidates)
     print('Gathering data for candidates...')
-    print " - "+str(n_candidates)+" candidate(s)"
+    print(" - "+str(n_candidates)+" candidate(s)")
 
     # Reference curvature and strain per segment
     # Does not store candidate inform
@@ -192,7 +192,7 @@ def run_pipeline(args):
         min_reference_curvature.append(min_ref_value)
     candidate_filter = np.where( np.array(total_curvature) - np.array(min_reference_curvature) <= 0.5 * np.pi )[0]
     good_candidates = [all_candidates[i] for i in candidate_filter]
-    print 'Keeping '+str(len(good_candidates))+' of '+str(n_candidates)+' candidates'
+    print('Keeping '+str(len(good_candidates))+' of '+str(n_candidates)+' candidates')
 
     # Get information for good candidates
     lines = []
@@ -250,7 +250,7 @@ def run_pipeline(args):
     print('memory use:', round(memoryUse,4))
 
     # 4.3 Conflicts: For each roothair get a list of conflicting roothairs
-    print " - Computing conflicts..."
+    print(" - Computing conflicts...")
     conflicts = candidates.Conflicts(good_candidates, lines, segment_ids, rh_segm.segments, data)
     conflicts_list, merge_list , adj_list = conflicts.create()
 
@@ -331,7 +331,7 @@ def run_pipeline(args):
     
 
     # For each roothair get a list of conflicting dummies 
-    print " - Computing conflicts with dummies..."
+    print(" - Computing conflicts with dummies...")
     rh_dummy_conflicts = candidates.DummyConflicts(good_candidates, all_dummies)
     rh_dummy_conflicts_list = rh_dummy_conflicts.create()
 
@@ -339,10 +339,10 @@ def run_pipeline(args):
     print('memory use:', round(memoryUse,4))
 
     n_candidates = len(good_candidates)   # number of candidates
-    print " - "+str(n_candidates)+" candidate(s)"
+    print(" - "+str(n_candidates)+" candidate(s)")
 
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_candidates'] = elapsed_time
     
     # 5. Optimize
@@ -353,35 +353,14 @@ def run_pipeline(args):
     costCalculator = optimization.Cost(measure=args.measure , cost_type=args.cost_type, weights=weights)
     optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
     
-    #roothair_paths, best_cost, ratio_complete, bestMetricsNorm = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list)
+    # Run optimization
     roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, offset_dict)
-
-    """
-    # Plot individual steps 
-    excess_curvatures = np.array(curve_measure) - np.array(min_reference_curve)
-    min_val = min(excess_curvatures)
-    max_val = np.percentile(excess_curvatures,95)
-    for ind, state in enumerate(solutions_arr):
-        if ind % 100 != 0:
-            continue
-        curves = [lines[i] for i in state]
-        values = [excess_curvatures[i] for i in state]
-        title_str = str(round(metrics_arr[ind][0],4)) + " " + str(round(metrics_arr[ind][1],4)) + " " + str(round(metrics_arr[ind][2],4)) + " -> " + str(round(cost_arr[ind],4))
-        rh_plot.plot_colored_state(curves, 
-                                    values, 
-                                    min_val, 
-                                    max_val, 
-                                    data, 
-                                    "/steps/solution_"+str(ind)+".png", 
-                                    title_str) 
-    """
     solution_roothairs = [candidates.Candidate(path, rh_segm.segments) for path in roothair_paths]
 
-    
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
     elapsed_time = time.time() - time_intermediate
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_optimize'] = elapsed_time
     
     # 6. Post Processing
@@ -436,7 +415,7 @@ def run_pipeline(args):
 
     elapsed_time = time.time() - time_intermediate
     meta_data['time_save'] = elapsed_time
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
 
 
     # ******************
@@ -452,7 +431,7 @@ def run_pipeline(args):
 
     elapsed_time = time.time() - time_intermediate
     meta_data['time_plot'] = elapsed_time
-    print 'Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
 
     # *************************
     # 10. Collect Meta Data
@@ -462,7 +441,7 @@ def run_pipeline(args):
     
     time_total = time.time() - time_start
     meta_data['time_total'] = time_total
-    print 'Total time: ' + time.strftime("%H:%M:%S", time.gmtime(time_total))
+    print('Total time: ' + time.strftime("%H:%M:%S", time.gmtime(time_total)))
 
     if args.print_all:
         with open(os.path.join(args.output_path, experiment_name+'_meta.csv'), 'wb') as f:
@@ -475,10 +454,10 @@ def run_pipeline(args):
                 writer.writerow(row)
 
 
-    print " "
-    print "**************************************************"
-    print "                    Finished!                     "
-    print "**************************************************"
+    print(" ")
+    print("**************************************************")
+    print("                    Finished!                     ")
+    print("**************************************************")
     
 def main():
     parser=argparse.ArgumentParser(description="Extracts and measures root hairs from classified image.")

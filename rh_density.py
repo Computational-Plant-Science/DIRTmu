@@ -31,7 +31,7 @@ import pickle
 import lines
 
 def extractDiameter(rootImg,rootIdx):
-    print "Computing radius of the main root"
+    print("Computing radius of the main root")
     medialAxisImg = selectLargestComponent(rootImg).astype(dtype=float)
 
     s=medialAxisImg.shape
@@ -55,12 +55,12 @@ def extractDiameter(rootImg,rootIdx):
     
     diameterPos=np.where(dist_on_skel>0)
     root_diameter = 2.*np.median(dist_on_skel[diameterPos])
-    print "Root diameter = "+ str(root_diameter)
+    print("Root diameter = "+ str(root_diameter))
     
     return dist_on_skel, root_diameter
     
 def pruneMA(MAimg):
-    print 'Pruning medial axis'
+    print('Pruning medial axis')
     # positions of the MA
     pos=np.where(MAimg>0)
     maxVal = np.max(MAimg)
@@ -97,7 +97,7 @@ def pruneMA(MAimg):
     return MAimg
     
 def reconstructRoot(MAimg):
-    print 'Reconstructing main root'
+    print('Reconstructing main root')
     pos=np.where(MAimg>0)
     imgShape = MAimg.shape
     rootImg=np.zeros(MAimg.shape, dtype=int)
@@ -112,7 +112,7 @@ def reconstructRoot(MAimg):
     return rootImg
 
 def reconstructLatRoots(rootImg, mainRootImg):
-    print 'Reconstructing lateral roots'
+    print('Reconstructing lateral roots')
 
     latRootImg = rootImg.copy()
     latRootImg[np.where(mainRootImg == 1)] = 0
@@ -287,7 +287,7 @@ def segmentRootComponents(labelImg, rootIdx):
 
 def computeDensity(labelImg, roothair, rootIdx, pixel_size):
 
-    print 'DIRT/mu-Roothair density estimation'
+    print('DIRT/mu-Roothair density estimation')
 
     pixel_size = float(pixel_size) # pixel size in microns per pixel
     window_size = 1000 # sys.argv[4]  # sliding window size in microns (=1000)

@@ -28,10 +28,10 @@ def pipeline(graph, segments):
     candidates = {}
     dummies = {}
     
-    print "**************************************************"
-    print "             Getting candidates                   "
-    print "      # of connected components:" + str(len(hist))   
-    print "**************************************************"
+    print("**************************************************")
+    print("             Getting candidates                   ")
+    print("      # of connected components:" + str(len(hist)))   
+    print("**************************************************")
     
     pid = os.getpid()
     py = psutil.Process(pid)
@@ -39,7 +39,7 @@ def pipeline(graph, segments):
     # Run for each subgraph separately for higher efficiency
     for i_comp in range(len(hist)):
         
-        print "Component "+str(i_comp)+":  "+str(hist[i_comp])+" nodes"
+        print("Component "+str(i_comp)+":  "+str(hist[i_comp])+" nodes")
         
         subgraph = gt.GraphView(graph, vfilt=comp.a == i_comp)
 
@@ -49,7 +49,7 @@ def pipeline(graph, segments):
         candidates[i_comp] = candgen.create_candidates(subgraph, segments)
 
         memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-        print " - "+str(len(candidates[i_comp]))+" candidates; memory use: "+ str(round(memoryUse,4))   
+        print(" - "+str(len(candidates[i_comp]))+" candidates; memory use: "+ str(round(memoryUse,4)))
 
     return candidates, dummies
 
@@ -457,7 +457,7 @@ class ReferenceValues:
         elif measure=='strain':
             self.measure = 2
         else:
-            print " Warning: "+measure+" is invalid type.\nmeasure=curvature will be used instead."
+            print(" Warning: "+measure+" is invalid type.\nmeasure=curvature will be used instead.")
             self.measure = 1
 
     def add(self, candidate):

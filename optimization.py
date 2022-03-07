@@ -29,13 +29,13 @@ class Optimize():
         pid = os.getpid()
         py = psutil.Process(pid)            
             
-        print "Resolving root hairs ..."
+        print("Resolving root hairs ...")
         nCandidates = len(conflictList)
 
         if nCandidates > 1: # If more than one candidate we need to find optimal set of roothairs
                         
             # Set initial solution and parameters
-            print " - Resolving..."
+            print(" - Resolving...")
             
             # Determine number of iterations
             maxLevels = 5*self.nIterations     
@@ -67,7 +67,7 @@ class Optimize():
             averageCost = csMaker.initialCost()                         # calcuulate initial cost from average of all costs
 
             print("norm curvature: "+str(1./normArray[0])+", norm length: "+str(1./normArray[1])+". norm distance: "+str(1./normArray[2]))
-            print "averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha)
+            print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
 
 
             # Initialize Simulated Annealing object
@@ -75,20 +75,20 @@ class Optimize():
 
 
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-            print ' - memory use: '+ str(round(memoryUse,4))
+            print(' - memory use: '+ str(round(memoryUse,4)))
             
             start_time = time.time()
             # Run optimization
             best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-            print ' - memory use: '+ str(round(memoryUse,4))
+            print(' - memory use: '+ str(round(memoryUse,4)))
             #summary[i_run+1] = {'n':n_candidates, 'T':T_arr, 'cost':cost_arr, 'best':best_arr}               
             
             # Final solution  
             sol_out = np.where(best_sol)[0]
                         
             elapsed_time = time.time() - start_time
-            print 'Time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+            print('Time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
         
         elif nCandidates == 1: # If only one candidate -> trivial solution
             sol_out = [0]
@@ -96,7 +96,7 @@ class Optimize():
             sol_out = []
         
         memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-        print ' - memory use: '+ str(round(memoryUse,4))
+        print(' - memory use: '+ str(round(memoryUse,4)))
         
         # Create roothair connected components from overall best solution
         components = dc.ConnectedComponents(mergeList)
@@ -112,7 +112,7 @@ class Optimize():
             roothair_paths.append(g.get_path())
         
         memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-        print ' - memory use: '+ str(round(memoryUse,4))
+        print(' - memory use: '+ str(round(memoryUse,4)))
         
         sa_parameters = {'SA_finalProb':finalProb,
                          'SA_initialProb':initialProb,
@@ -188,8 +188,8 @@ class SimulatedAnnealing:
 
         n_iterations = 0 
 
-        print " - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                    + str([round(c,3) for c in metricsNorm]) + str(round(float(self.R)/self.R_max,3))
+        print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
+                    + str([round(c,3) for c in metricsNorm]) + str(round(float(self.R)/self.R_max,3)))
 
         while (self.currTemp > self.finalTemp or self.R < self.R_max) and n_iterations < self.maxLevels: # T must be less than finalTemp and R must be larger than R_max to stop
 
@@ -242,8 +242,8 @@ class SimulatedAnnealing:
             # Increase number of iterations
             n_iterations += 1
 
-            print " - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                        + str([round(c,3) for c in bestMetricsNorm]) + str(round(float(self.R)/self.R_max,3))
+            print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
+                        + str([round(c,3) for c in bestMetricsNorm]) + str(round(float(self.R)/self.R_max,3)))
 
         ratio_complete = 1.-best_metrics[1]
         # Uncomment for plotting images:
