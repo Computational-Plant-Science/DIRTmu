@@ -24,7 +24,7 @@ class Optimize():
         self.cost = cost
         self.nIterations = nIterations
         
-    def run(self, candInfo, conflictList, mergeList, adjacencyList, dummyConflictsList, curvature_offset_dict, ref_value_offset_dict):
+    def run(self, candInfo, conflictList, mergeList, adjacencyList, dummyConflictsList, offset_dict):
         
         pid = os.getpid()
         py = psutil.Process(pid)            
@@ -46,8 +46,7 @@ class Optimize():
                             conflictList=conflictList,
                             adjacencyList=adjacencyList,
                             dummyConflictsList=dummyConflictsList,
-                            curvature_offset_dict=curvature_offset_dict,
-                            ref_value_offset_dict=ref_value_offset_dict)
+                            offset_dict=offset_dict)
 
 
             # Create random state
@@ -264,7 +263,7 @@ class SimulatedAnnealing:
 
 
 class State:
-    def __init__(self, candInfo, mergeList, conflictList, adjacencyList, dummyConflictsList, curvature_offset_dict, ref_value_offset_dict):
+    def __init__(self, candInfo, mergeList, conflictList, adjacencyList, dummyConflictsList, offset_dict):
 
         self.candInfo = candInfo
         self.binaryList = np.zeros(len(candInfo.paths),dtype=int)  #sol is a binary 1D numpy array (e.g. sol = array([0,1,0,1,1]))
@@ -272,8 +271,7 @@ class State:
         self.conflictList = conflictList
         self.adjacencyList = adjacencyList
         self.dummyConflictsList = dummyConflictsList
-        self.curvature_offset_dict = curvature_offset_dict
-        self.ref_value_offset_dict = ref_value_offset_dict
+        self.offset_dict = offset_dict
 
         # Create a graph from path of each candidate
         self.candidate_graphs = []
@@ -283,7 +281,6 @@ class State:
         # Initialize individual items of cost
         # Add all dummies, because there are no candidate root hairs yet
         self.cost_items = CostItems(sum_length_dummy=sum(self.candInfo.dummy_lengths),
-                                    sum_strain_dummy=sum(self.candInfo.dummy_strain),
                                     sum_length_all=sum(self.candInfo.dummy_lengths) )
 
         # No conflicts yet for dummies
@@ -348,10 +345,7 @@ class State:
         # Calcule difference in cost items
         self.cost_items_difference.extract(self.candInfo, 
                                             self.candidate_graphs,
-                                            self.curvature_offset_dict,
-                                            self.ref_value_offset_dict,
-                                            self.addedCandidates, 
-                                            self.removedCandidates, 
+                                            self.offset_dict,
                                             self.addedComponents, 
                                             self.removedComponents, 
                                             self.addedDummies, 
@@ -616,7 +610,7 @@ class CandidateInformation:
         self.dummy_max_max_distance = 0.0
 
         # Candidate values
-        self.strain = np.array([])
+        self.excess_strain = np.array([])
         self.min_distance = np.array([])
         self.max_distance = np.array([])
         self.min_reference_strain = np.array([])
@@ -627,18 +621,14 @@ class CandidateInformation:
 
 class CostItems:
     def __init__(   self, 
-                    sum_strain_roothair=0.0,\
-                    sum_strain_dummy=0.0, \
-                    sum_min_reference_strain=0.0, \
+                    sum_excess_strain_roothair=0.0,\
                     sum_length_dummy=0.0, \
                     sum_length_all=0.0, \
                     sum_min_distance_roothair=0.0, \
                     num_roothair=0, \
                     sum_max_distance_roothair=0.0):
 
-        self.sum_strain_roothair = sum_strain_roothair
-        self.sum_strain_dummy = sum_strain_dummy
-        self.sum_min_reference_strain = sum_min_reference_strain
+        self.sum_excess_strain_roothair = sum_excess_strain_roothair
 
         # Total length of remaining dummies measure
         self.sum_length_dummy = sum_length_dummy
@@ -653,9 +643,7 @@ class CostItems:
 
     def __add__(self, other):
 
-        sum_strain_roothair = self.sum_strain_roothair + other.sum_strain_roothair
-        sum_strain_dummy = self.sum_strain_dummy + other.sum_strain_dummy
-        sum_min_reference_strain = self.sum_min_reference_strain + other.sum_min_reference_strain
+        sum_excess_strain_roothair = self.sum_excess_strain_roothair + other.sum_excess_strain_roothair
 
         # Total length of remaining dummies measure
         sum_length_dummy = self.sum_length_dummy + other.sum_length_dummy
@@ -668,15 +656,13 @@ class CostItems:
         # Max distance to root
         sum_max_distance_roothair = self.sum_max_distance_roothair + other.sum_max_distance_roothair
 
-        return CostItems(sum_strain_roothair, sum_strain_dummy, sum_min_reference_strain, \
+        return CostItems(sum_excess_strain_roothair, \
                             sum_length_dummy, sum_length_all, 
                             sum_min_distance_roothair, num_roothair, sum_max_distance_roothair)
 
     def __sub__(self, other):
 
-        sum_strain_roothair = self.sum_strain_roothair - other.sum_strain_roothair
-        sum_strain_dummy = self.sum_strain_dummy - other.sum_strain_dummy
-        sum_min_reference_strain = self.sum_min_reference_strain - other.sum_min_reference_strain
+        sum_excess_strain_roothair = self.sum_excess_strain_roothair - other.sum_excess_strain_roothair
 
         # Total length of remaining dummies measure
         sum_length_dummy = self.sum_length_dummy - other.sum_length_dummy
@@ -689,51 +675,42 @@ class CostItems:
         # Max distance to root
         sum_max_distance_roothair = self.sum_max_distance_roothair - other.sum_max_distance_roothair
 
-        return CostItems(sum_strain_roothair, sum_strain_dummy, sum_min_reference_strain, \
+        return CostItems(sum_excess_strain_roothair, \
                             sum_length_dummy, sum_length_all, 
                             sum_min_distance_roothair, num_roothair, sum_max_distance_roothair)
 
 class CostItemDifference(CostItems):
 
-    def extract(self, candInfo, candidate_graphs, curvature_offset_dict, ref_value_offset_dict, cand_add, cand_remove, comp_add, comp_remove, dum_add, dum_remove):
+    def extract(self, candInfo, candidate_graphs, offset_dict, comp_add, comp_remove, dum_add, dum_remove):
         
         # Compute curvatures/strains
         s_remove_total = 0.
         for c in comp_remove:
-            #TODO: should be simpler -> s_remove = sum(candInfo.excess_strain[c])
-            s_remove = sum(candInfo.strain[c]) - sum(candInfo.min_reference_strain[c])
+            s_remove = sum(candInfo.excess_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
-                    #TODO: should be one offset value only = curvature_offset_dict + ref_value_offset_dict
-                    s_remove += curvature_offset_dict[(min(first, second),max(first, second))]
-                    s_remove += ref_value_offset_dict[(min(first, second),max(first, second))]
+                    s_remove += offset_dict[(min(first, second),max(first, second))]
             if s_remove < 0:
                 s_remove = 0.0
             s_remove_total += s_remove # TODO: should use square **2; take root at end when calculating cost
 
         s_add_total = 0.
         for c in comp_add:
-            #TODO: should be simpler -> s_add = sum(candInfo.excess_strain[c])
-            s_add = sum(candInfo.strain[c]) - sum(candInfo.min_reference_strain[c])
+            s_add = sum(candInfo.excess_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
-                    #TODO: should be one offset value only = curvature_offset_dict + ref_value_offset_dict
-                    s_add += curvature_offset_dict[(min(first, second),max(first, second))]
-                    s_add += ref_value_offset_dict[(min(first, second),max(first, second))]
+                    s_add += offset_dict[(min(first, second),max(first, second))]
             if s_add < 0:
                 s_add = 0.0
             s_add_total += s_add # TODO: should use square **2; take root at end when calculating cost
 
         
         # Curvature measure
-        self.sum_strain_roothair = s_add_total - s_remove_total
+        self.sum_excess_strain_roothair = s_add_total - s_remove_total
         
         # Total length of remaining dummies measure
         self.sum_length_dummy = sum(candInfo.dummy_lengths[dum_add]) \
                                         - sum(candInfo.dummy_lengths[dum_remove])
-
-        self.sum_strain_dummy = sum(candInfo.dummy_strain[dum_add]) \
-                                        - sum(candInfo.dummy_strain[dum_remove])
         
         # Number of components
         self.num_roothair = len(comp_add) - len(comp_remove)
@@ -792,7 +769,7 @@ class Cost:
 
         cost_items = state.cost_items
 
-        curvature_measure = cost_items.sum_strain_roothair
+        curvature_measure = cost_items.sum_excess_strain_roothair
 
         tot_len_measure = cost_items.sum_length_dummy / cost_items.sum_length_all
 

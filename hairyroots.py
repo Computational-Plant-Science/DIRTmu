@@ -263,10 +263,9 @@ def run_pipeline(args):
     cand_info.dummy_max_max_distance = dummy_max_max_distance
 
     # Set information from candidates
-    cand_info.strain = curve_measure
+    cand_info.excess_strain = curve_measure-min_reference_curve
     cand_info.min_distance = min_distance
     cand_info.max_distance = max_distance
-    cand_info.min_reference_strain = min_reference_curve
 
     # Minimum distance of segments to root
     cand_info.minDistToEdge = {key: val.minDistToEdge for key, val in rh_segm.segments.items()}
@@ -279,9 +278,8 @@ def run_pipeline(args):
     conflicts = candidates.Conflicts(good_candidates, lines, segment_ids, rh_segm.segments, data)
     conflicts_list, merge_list , adj_list = conflicts.create()
 
-
     # 4.4 Compute offset for merged candidates and add merged curves to best curvatures per segment (ref_segment_strain or ref_segment_curvature)
-    curvature_offset_dict = {}
+    offset_dict = {}
 
     for cand_i in range(len(merge_list)):
 
@@ -307,7 +305,7 @@ def run_pipeline(args):
                 ref_segment_curvature.add(c)
 
             curvature_offset =  merged_curve_measure - curve_measure[cand_i] - curve_measure[cand_j]
-            curvature_offset_dict[(cand_i,cand_j)] = curvature_offset
+            offset_dict[(cand_i,cand_j)] = curvature_offset
 
     # Need to recalculate reference curvature for good candidates and for merged candidates
     # Recaluclate reference curvature for good candidates
@@ -325,7 +323,6 @@ def run_pipeline(args):
     cand_info.min_reference_strain = min_reference_curve
 
     # Recaluclate information for merged candidates
-    ref_value_offset_dict = {}
     for cand_i in range(len(merge_list)):
         if cand_i%1000 == 0:
                 print(' - Merging candidate '+str(cand_i))
@@ -344,7 +341,7 @@ def run_pipeline(args):
             else:
                 min_ref_value,_ = ref_segment_curvature.calc(merged_path, rh_segm.segments, c.segment_ids)
             ref_value_offset = min_reference_curve[cand_i] + min_reference_curve[cand_j] - min_ref_value
-            ref_value_offset_dict[(cand_i,cand_j)] = ref_value_offset
+            offset_dict[(cand_i,cand_j)] += ref_value_offset
 
     """
     curves = []
@@ -381,7 +378,7 @@ def run_pipeline(args):
     optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
     
     #roothair_paths, best_cost, ratio_complete, bestMetricsNorm = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list)
-    roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, curvature_offset_dict, ref_value_offset_dict)
+    roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, offset_dict)
 
     """
     # Plot individual steps 
