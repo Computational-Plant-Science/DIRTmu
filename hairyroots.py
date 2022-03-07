@@ -143,33 +143,13 @@ def run_pipeline(args):
     meta_data['n_candidates'] = len(all_candidates)
     
     # 4.1 Gather data for dummies
-    # TODO: Are all dummy values still relevant?
     print('Gathering data for dummies...')
-    dummy_curve = []
     dummy_lengths = []
-    dummy_min_distance = []
-    dummy_max_distance = []
-
     for path in all_dummies:
-
         d = candidates.Candidate(path, rh_segm.segments)
         d.fitCurve()
-
-        if args.measure == 'strain_energy': 
-            dummy_curve.append(d.strainenergy())
-        else:
-            dummy_curve.append(d.totalcurvature())
         dummy_lengths.append(d.length())
-        d_min, d_max = d.connectivity()
-        dummy_min_distance.append(d_min)
-        dummy_max_distance.append(d_max)
-
     # Dummy values
-    dummy_median_min_distance = np.median(dummy_min_distance)
-    dummy_median_max_distance = np.median(dummy_max_distance)
-    dummy_max_max_distance = max(dummy_max_distance)
-
-    dummy_curve = np.array(dummy_curve)
     dummy_lengths = np.array(dummy_lengths)
 
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
@@ -256,11 +236,7 @@ def run_pipeline(args):
     cand_info.paths = good_candidates
     
     # Set information from dummies
-    cand_info.dummy_strain = dummy_curve
     cand_info.dummy_lengths = dummy_lengths
-    cand_info.dummy_median_min_distance = dummy_median_min_distance
-    cand_info.dummy_median_max_distance = dummy_median_max_distance
-    cand_info.dummy_max_max_distance = dummy_max_max_distance
 
     # Set information from candidates
     cand_info.excess_strain = curve_measure-min_reference_curve

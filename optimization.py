@@ -603,11 +603,7 @@ class CandidateInformation:
         self.paths = []
 
         # Dummie values
-        self.dummy_strain = np.array([])
         self.dummy_lengths = np.array([])
-        self.dummy_median_min_distance = 0.0
-        self.dummy_median_max_distance = 0.0
-        self.dummy_max_max_distance = 0.0
 
         # Candidate values
         self.excess_strain = np.array([])
