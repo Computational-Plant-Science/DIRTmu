@@ -590,8 +590,12 @@ class Conflicts:
                 segment_ids_2 = self.segment_ids[id_2]
 
                 if self.isAdjacent(path_1, path_2, line_1, line_2, segment_ids_1, segment_ids_2):
-                    merge_list[id_1].append(id_2)
-                    merge_list[id_2].append(id_1)
+                    if len(path_1) > 5 and len(path_2) > 5: # Only allow to merge if more than 5 nodes long (i.e. at least 3 MA segments)
+                        merge_list[id_1].append(id_2)
+                        merge_list[id_2].append(id_1)
+                    else:
+                        conf_list[id_1].append(id_2)
+                        conf_list[id_2].append(id_1)
                     #rh_plot.plot_two_curves(line_1, line_2, self.data, '/mnt/c/Projects/Roothair/temp/result/adjacent/'+str(id_1)+'_'+str(id_2)+'.png')
                 elif self.hasConflict(path_1, path_2, line_1, line_2, segment_ids_1, segment_ids_2):
                     conf_list[id_1].append(id_2)
