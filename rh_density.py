@@ -26,7 +26,7 @@ def extractDiameter(rootImg,rootIdx):
     medialAxisImg = selectLargestComponent(rootImg).astype(dtype=float)
 
     s=medialAxisImg.shape
-    medialAxisImgSmall=resize(medialAxisImg.copy(),(100,int(float(s[1])/float(s[0])*100)))
+    medialAxisImgSmall=resize(medialAxisImg.copy(),(100,int(float(s[1])/float(s[0])*100)), anti_aliasing=True, mode='reflect') # Downsampling
     #medialAxisImgSmall = medialAxisImgSmall > 0.5
 
     # Compute the medial axis (skeleton) and the distance transform for the root object
@@ -37,7 +37,7 @@ def extractDiameter(rootImg,rootIdx):
     skel, distance = medial_axis(medialAxisImg, return_distance=True)
     skelSmall, distanceSmall = medial_axis(medialAxisImgSmall, return_distance=True)
     dist_on_skel = distance * skel
-    dist_on_skelSmall = resize(distanceSmall * skelSmall,s)
+    dist_on_skelSmall = resize(distanceSmall * skelSmall,s, anti_aliasing=False, mode='reflect') # Sampling back to orginal size
     
     skelList=np.where(dist_on_skelSmall==0)
     dist_on_skel[skelList]=0
