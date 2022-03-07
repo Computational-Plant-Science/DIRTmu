@@ -697,29 +697,36 @@ class CostItemDifference(CostItems):
 
     def extract(self, candInfo, candidate_graphs, curvature_offset_dict, ref_value_offset_dict, cand_add, cand_remove, comp_add, comp_remove, dum_add, dum_remove):
         
-        # Compute offsets for merged/unmerged components
-        strain_offset = 0.
-        reference_offset = 0.
+        # Compute curvatures/strains
+        s_remove_total = 0.
         for c in comp_remove:
+            #TODO: should be simpler -> s_remove = sum(candInfo.excess_strain[c])
+            s_remove = sum(candInfo.strain[c]) - sum(candInfo.min_reference_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
-                    strain_offset += curvature_offset_dict[(min(first, second),max(first, second))]
-                    reference_offset += ref_value_offset_dict[(min(first, second),max(first, second))]
+                    #TODO: should be one offset value only = curvature_offset_dict + ref_value_offset_dict
+                    s_remove += curvature_offset_dict[(min(first, second),max(first, second))]
+                    s_remove += ref_value_offset_dict[(min(first, second),max(first, second))]
+            if s_remove < 0:
+                s_remove = 0.0
+            s_remove_total += s_remove # TODO: should use square **2; take root at end when calculating cost
 
+        s_add_total = 0.
         for c in comp_add:
+            #TODO: should be simpler -> s_add = sum(candInfo.excess_strain[c])
+            s_add = sum(candInfo.strain[c]) - sum(candInfo.min_reference_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
-                    strain_offset -= curvature_offset_dict[(min(first, second),max(first, second))]
-                    reference_offset -= ref_value_offset_dict[(min(first, second),max(first, second))]
-      
-        # Curvature measure
-        self.sum_strain_roothair = sum(candInfo.strain[cand_add]) \
-                                        - sum(candInfo.strain[cand_remove]) \
-                                            + strain_offset
+                    #TODO: should be one offset value only = curvature_offset_dict + ref_value_offset_dict
+                    s_add += curvature_offset_dict[(min(first, second),max(first, second))]
+                    s_add += ref_value_offset_dict[(min(first, second),max(first, second))]
+            if s_add < 0:
+                s_add = 0.0
+            s_add_total += s_add # TODO: should use square **2; take root at end when calculating cost
 
-        self.sum_min_reference_strain = sum(candInfo.min_reference_strain[cand_add]) \
-                                        - sum(candInfo.min_reference_strain[cand_remove]) \
-                                            + reference_offset
+        
+        # Curvature measure
+        self.sum_strain_roothair = s_add_total - s_remove_total
         
         # Total length of remaining dummies measure
         self.sum_length_dummy = sum(candInfo.dummy_lengths[dum_add]) \
@@ -785,8 +792,7 @@ class Cost:
 
         cost_items = state.cost_items
 
-        curvature_measure = (cost_items.sum_strain_roothair - cost_items.sum_min_reference_strain) #\
-            #/ (cost_items.sum_min_reference_strain)
+        curvature_measure = cost_items.sum_strain_roothair
 
         tot_len_measure = cost_items.sum_length_dummy / cost_items.sum_length_all
 
