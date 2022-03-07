@@ -2,14 +2,16 @@
 """
 This program creates candidates of root hairs
 """
-from matplotlib.backends.backend_agg import FigureCanvasAgg
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gs
+import os
+import psutil
+import warnings
+
+#from matplotlib.backends.backend_agg import FigureCanvasAgg
+#from matplotlib.figure import Figure
+#import matplotlib.pyplot as plt
+#import matplotlib.gridspec as gs
 
 import numpy as np
-import warnings
-import networkx as nx
 from lines import line
 from scipy.interpolate import splprep, splev
 from scipy import signal
@@ -18,8 +20,7 @@ from collections import defaultdict
 from itertools import product, groupby
 from operator import itemgetter
 import graph_tool.all as gt
-import os
-import psutil
+
 
 def pipeline(graph, segments):
         

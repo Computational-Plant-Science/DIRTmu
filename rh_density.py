@@ -3,32 +3,23 @@
 
 """
 """
-from skimage import data, io, segmentation, color,measure
-from skimage.future import graph
-from skimage.draw import circle
-import numpy as np
-#import pylab as p 
-from skimage.morphology import medial_axis, opening, closing, square, disk, dilation
-from skimage.transform import resize
-from skimage.restoration import denoise_bilateral
-from skimage.morphology import disk
-from skimage.measure import label
-from skimage.measure import regionprops
-from skimage import filters
 import math
 
-import os 
-import csv
-import sys
-
+import numpy as np
+from skimage import measure
+from skimage.draw import circle
+from skimage.morphology import medial_axis, opening, closing, disk
+from skimage.transform import resize
+from skimage.measure import regionprops, label
 from scipy.interpolate import splprep, splev
+from sklearn.neighbors import NearestNeighbors
+
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from sklearn.neighbors import NearestNeighbors
-import pickle
-import lines
+
+
 
 def extractDiameter(rootImg,rootIdx):
     print("Computing radius of the main root")

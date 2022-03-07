@@ -23,28 +23,25 @@ Web: http://www.computational-plant-science.org
 
 
 import argparse
+import time
+import os
+import psutil
+import csv
+
 import numpy as np
-#import matplotlib.pyplot as plt
+from PIL import Image
+import pandas as pd
+
 import rh_io
 import preprocessing
 import segmentation
 import candidates
 import optimization
 import analysis
-import os
-import psutil
-import pandas as pd
-import csv
-import graph_tool as gt
 import rh_plot
 import rh_density
 import graphs
 
-from PIL import Image
-from scipy import signal
-from scipy import interpolate
-
-import time
 
 def run_pipeline(args):
     

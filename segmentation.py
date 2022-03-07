@@ -9,7 +9,7 @@ import skimage.filters.rank as rank
 from skimage.measure import label
 import networkx as nx
 import graph_tool.all as gt
-import matplotlib.pyplot as plt
+
 
 
 class Segmentation:

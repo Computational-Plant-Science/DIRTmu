@@ -4,18 +4,18 @@ Created on Sun Jul 01 15:29:15 2018
 @author: pp34747
 """
 import random
-import numpy as np
-import math
-import candidates
-import graphs
-import matplotlib.pyplot as plt
 import os
 import psutil
 import time
-from itertools import chain, izip
-import graph_tool.all as gt
-import dynamic_connectivity as dc
+import math
+
+import numpy as np
 from scipy.stats.mstats import gmean
+from itertools import chain
+
+import graphs
+import dynamic_connectivity as dc
+
 
 class Optimize():
     def __init__(self, cost=None, nIterations=200):

@@ -7,7 +7,6 @@ Created on Fri Feb 09 13:11:49 2018
 import numpy as np
 from skimage.measure import label
 import skimage.filters.rank as rank
-import networkx as nx
 
 
 def numOfNeighbours(arr, a):

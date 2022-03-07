@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
-
 class ConnectedComponents:
     """
     From a set of known vertices and edges (merge_list)
