@@ -722,8 +722,8 @@ class CostItemDifference(CostItems):
         for tip_pair in tips_add:
             distances = [candInfo.minDistToEdge[t] for t in tip_pair]
             if len(distances) == 2:
-                min_distance += min(distances)
-                max_distance += max(distances)
+                min_distance += min(distances)**2 # Square to reduce number of outliers
+                max_distance += max(distances)**2 # Square to reduce number of outliers
             else:
                 #print "for tip_pair in tips_add: len(distances) = ", len(distances)
                 return False
@@ -731,8 +731,8 @@ class CostItemDifference(CostItems):
         for tip_pair in tips_remove:
             distances = [candInfo.minDistToEdge[t] for t in tip_pair]
             if len(distances) == 2:
-                min_distance -= min(distances)
-                max_distance -= max(distances)
+                min_distance -= min(distances)**2 # Square to reduce number of outliers
+                max_distance -= max(distances)**2 # Square to reduce number of outliers
             else:
                 #print "for tip_pair in tips_remove: len(distances) = ", len(distances)
                 return False
@@ -770,7 +770,7 @@ class Cost:
         tot_len_measure = cost_items.sum_length_dummy / cost_items.sum_length_all
 
         if cost_items.num_roothair > 0:
-            min_dist_measure = cost_items.sum_min_distance_roothair / cost_items.num_roothair
+            min_dist_measure = math.sqrt(cost_items.sum_min_distance_roothair / cost_items.num_roothair)
         else:
             min_dist_measure = 0.0
 
