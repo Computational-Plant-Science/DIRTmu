@@ -610,6 +610,7 @@ class CandidateInformation:
         self.min_distance = np.array([])
         self.max_distance = np.array([])
         self.min_reference_strain = np.array([])
+        self.n_segments = np.array([])
 
         # Segment distance to root
         self.minDistToEdge = {}
@@ -682,23 +683,25 @@ class CostItemDifference(CostItems):
         # Compute curvatures/strains
         s_remove_total = 0.
         for c in comp_remove:
+            len_remove = sum(candInfo.n_segments[c]) - len(c) + 1
             s_remove = sum(candInfo.excess_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
                     s_remove += offset_dict[(min(first, second),max(first, second))]
             if s_remove < 0:
                 s_remove = 0.0
-            s_remove_total += s_remove # TODO: should use square **2; take root at end when calculating cost
+            s_remove_total += (s_remove / len_remove)**2 # TODO: should use square **2; take root at end when calculating cost
 
         s_add_total = 0.
         for c in comp_add:
+            len_add = sum(candInfo.n_segments[c]) - len(c) + 1
             s_add = sum(candInfo.excess_strain[c])
             if len(c)>1:
                 for first, second in zip(c, c[1:]):
                     s_add += offset_dict[(min(first, second),max(first, second))]
             if s_add < 0:
                 s_add = 0.0
-            s_add_total += s_add # TODO: should use square **2; take root at end when calculating cost
+            s_add_total += (s_add / len_add)**2 # TODO: should use square **2; take root at end when calculating cost
 
         
         # Curvature measure
@@ -765,7 +768,7 @@ class Cost:
 
         cost_items = state.cost_items
 
-        curvature_measure = cost_items.sum_excess_strain_roothair
+        curvature_measure = math.sqrt(cost_items.sum_excess_strain_roothair / cost_items.num_roothair)
 
         tot_len_measure = cost_items.sum_length_dummy / cost_items.sum_length_all
 

@@ -231,7 +231,8 @@ def run_pipeline(args):
     # Create object to hold all candidate/dummy information to calculate cost
     cand_info = optimization.CandidateInformation()
     cand_info.paths = good_candidates
-    
+    cand_info.n_segments = np.array([(len(p)-1)/2 for p in good_candidates])
+
     # Set information from dummies
     cand_info.dummy_lengths = dummy_lengths
 
