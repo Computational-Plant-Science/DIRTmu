@@ -56,9 +56,10 @@ class Optimize():
             #  - Assume equal weights for cost
             finalProb = 0.01/nCandidates                                # 1% chance of upward move being accepted at last temperature level
             initialProb = 0.95                                          # 95% chance of upward move being accepted at initial temperature level
+            nIterationsInitalize = int(0.2*self.nIterations)
                                        
             csMaker = CoolingScheduleMaker(state, costFunction=self.cost, initialProb=initialProb, finalProb=finalProb) # object to make cooling schedule
-            csMaker.simulate(int(0.2*self.nIterations*nCandidates))     # 20% of iterations in actual optimization
+            csMaker.simulate(nIterationsInitalize*nCandidates)     # 20% of iterations in actual optimization
             normArray = csMaker.normalization()                         # calculates avergae values of sub costs for normalization
             self.cost.setNormValues(normArray)                          # first, set normalization value in cost function
             tempWeights = np.array(self.cost.weights)                   # store original weights temporarily
@@ -81,8 +82,8 @@ class Optimize():
             csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
             csMaker.calculateUpwardCosts()                              # recalculate average upword cost
             initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
-            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
-            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            alpha = csMaker.getAlpha(initialTemp, nIterationsInitalize)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, nIterationsInitalize)     # recalculate final temperature
             averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
 
             sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
@@ -99,8 +100,8 @@ class Optimize():
             csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
             csMaker.calculateUpwardCosts()                              # recalculate average upword cost
             initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
-            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
-            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            alpha = csMaker.getAlpha(initialTemp, nIterationsInitalize)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, nIterationsInitalize)     # recalculate final temperature
             averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
 
             sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
@@ -117,8 +118,8 @@ class Optimize():
             csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
             csMaker.calculateUpwardCosts()                              # recalculate average upword cost
             initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
-            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
-            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            alpha = csMaker.getAlpha(initialTemp, nIterationsInitalize)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, nIterationsInitalize)     # recalculate final temperature
             averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
 
             sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
