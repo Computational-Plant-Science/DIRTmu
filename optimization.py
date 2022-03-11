@@ -651,13 +651,13 @@ class CoolingScheduleMaker:
         """
         Calculates average increasing cost
         """
-        return np.mean(self.deltaCostArray)
+        return np.median(self.deltaCostArray)
 
     def initialCost(self):
         """
         Calculates average initial cost
         """
-        return np.mean(self.costArray)
+        return np.median(self.costArray)
         
 
     def getInitialTemp(self):
