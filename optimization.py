@@ -35,7 +35,7 @@ class Optimize():
         if nCandidates > 1: # If more than one candidate we need to find optimal set of roothairs
                         
             # Set initial solution and parameters
-            print(" - Resolving...")
+            
             
             # Determine number of iterations
             maxLevels = 5*self.nIterations     
@@ -48,17 +48,106 @@ class Optimize():
                             dummyConflictsList=dummyConflictsList,
                             offset_dict=offset_dict)
 
-
+            print("\n*** Get initial SA parameters ***")
             # Create random state
             shuffleState(state,nCandidates)
 
-            # Get values for cooling schedule by simulating random states
+            # Get initial values for cooling schedule by simulating random states
+            #  - Assume equal weights for cost
             finalProb = 0.01/nCandidates                                # 1% chance of upward move being accepted at last temperature level
             initialProb = 0.95                                          # 95% chance of upward move being accepted at initial temperature level
+                                       
             csMaker = CoolingScheduleMaker(state, costFunction=self.cost, initialProb=initialProb, finalProb=finalProb) # object to make cooling schedule
             csMaker.simulate(int(0.2*self.nIterations*nCandidates))     # 20% of iterations in actual optimization
             normArray = csMaker.normalization()                         # calculates avergae values of sub costs for normalization
-            self.cost.setNormValues(normArray)                          # set normalization value in cost function
+            self.cost.setNormValues(normArray)                          # first, set normalization value in cost function
+            tempWeights = np.array(self.cost.weights)                   # store original weights temporarily
+
+            self.cost.setWeights([1.,1.,1.])                            # and set equal weights
+            csMaker.recalculateCost()                                   # calculate costs with normalization and equal weights
+            csMaker.calculateUpwardCosts()                              # calculate average upword cost
+            initialTemp = csMaker.getInitialTemp()                      # calculate initial temperature
+            alpha = csMaker.getAlpha(initialTemp, self.nIterations)     # calculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, self.nIterations)   # calculate final temperature
+            averageCost = csMaker.initialCost()                         # calcuulate initial cost from average of all costs
+
+            print("rand curvature: "+str(1./normArray[0])+", rand length: "+str(1./normArray[1])+". rand distance: "+str(1./normArray[2]))
+            print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
+
+            # Optimize for Curvature
+            print("\n*** Optimize for curvature ***")
+            shuffleState(state,nCandidates)
+            self.cost.setWeights(np.array([100,1,1]))                   # Set new weights
+            csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
+            csMaker.calculateUpwardCosts()                              # recalculate average upword cost
+            initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
+            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
+
+            sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
+            best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
+            w_curve = bestMetricsNorm[0]
+
+            print("curvature: "+str(bestMetricsNorm[0]/normArray[0])+", length: "+str(bestMetricsNorm[1]/normArray[1])+", distance: "+str(bestMetricsNorm[2]/normArray[2]))
+            print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
+
+            # Optimize for Length
+            print("\n*** Optimize for length ***")
+            shuffleState(state,nCandidates)                             
+            self.cost.setWeights(np.array([1,100,1]))                   # Set new weights
+            csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
+            csMaker.calculateUpwardCosts()                              # recalculate average upword cost
+            initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
+            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
+
+            sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
+            best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
+            w_length = bestMetricsNorm[1]
+
+            print("curvature: "+str(bestMetricsNorm[0]/normArray[0])+", length: "+str(bestMetricsNorm[1]/normArray[1])+", distance: "+str(bestMetricsNorm[2]/normArray[2]))
+            print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
+
+            # Optimize for Distance
+            print("\n*** Optimize for distance ***")
+            shuffleState(state,nCandidates)                             
+            self.cost.setWeights(np.array([1,1,100]))                   # Set new weights
+            csMaker.recalculateCost()                                   # recalculate costs with normalization and new weights
+            csMaker.calculateUpwardCosts()                              # recalculate average upword cost
+            initialTemp = csMaker.getInitialTemp()                      # recalculate initial temperature
+            alpha = csMaker.getAlpha(initialTemp, 10)                   # recalculate alpha
+            finalTemp = csMaker.getFinalTemp(initialTemp,alpha, 10)     # recalculate final temperature
+            averageCost = csMaker.initialCost()                         # recalcuulate initial cost from average of all costs
+
+            sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
+            best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
+            w_dist = bestMetricsNorm[2]
+
+            print("curvature: "+str(bestMetricsNorm[0]/normArray[0])+", length: "+str(bestMetricsNorm[1]/normArray[1])+", distance: "+str(bestMetricsNorm[2]/normArray[2]))
+            print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
+
+            print("\n*** Determine final SA parameters")
+            print("Goal: "+"curvature: "+str(w_curve/normArray[0])+", length: "+str(w_length/normArray[1])+", distance: "+str(w_dist/normArray[2]))
+            
+            # Calculate new normalization values
+            auto_weights = np.array([w_curve, w_length, w_dist]) 
+            if np.any(auto_weights): 
+                if not np.all(auto_weights):        
+                    min_non_zero = min(val for val in auto_weights if val > 0)
+                    ind_zeros = np.where(auto_weights == 0)[0]
+                    auto_weights[ind_zeros] = min_non_zero
+                else:
+                    pass
+            else:
+                auto_weights = np.array([1.,1.,1.])        
+            newNormArray = normArray/auto_weights # new normalization values
+
+            # Parameters for main Simulated Annealing process
+            shuffleState(state,nCandidates)
+            self.cost.setWeights(tempWeights) 
+            self.cost.setNormValues(newNormArray)
             csMaker.recalculateCost()                                   # calculate costs with normalization
             csMaker.calculateUpwardCosts()                              # calculate average upword cost
             initialTemp = csMaker.getInitialTemp()                      # calculate initial temperature
@@ -66,22 +155,27 @@ class Optimize():
             finalTemp = csMaker.getFinalTemp(initialTemp,alpha, self.nIterations)   # calculate final temperature
             averageCost = csMaker.initialCost()                         # calcuulate initial cost from average of all costs
 
-            print("norm curvature: "+str(1./normArray[0])+", norm length: "+str(1./normArray[1])+". norm distance: "+str(1./normArray[2]))
+            print("rand curvature: "+str(1./normArray[0])+", rand length: "+str(1./normArray[1])+". rand distance: "+str(1./normArray[2]))
             print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
-
 
             # Initialize Simulated Annealing object
             sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
 
-
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
             print(' - memory use: '+ str(round(memoryUse,4)))
-            
+            print(" - Resolving...")
+
             start_time = time.time()
             # Run optimization
             best_sol, best_cost, ratio_complete, bestMetricsNorm, n_iterations = sa.anneal()
+
+            print("\nRandom: curvature: "+str(1./normArray[0])+", length: "+str(1./normArray[1])+", distance: "+str(1./normArray[2]))
+            print("Goal: "+"curvature: "+str(auto_weights[0]/normArray[0])+", length: "+str(auto_weights[1]/normArray[1])+", distance: "+str(auto_weights[2]/normArray[2]))
+            print("Result: "+"curvature: "+str(bestMetricsNorm[0]/newNormArray[0])+", length: "+str(bestMetricsNorm[1]/newNormArray[1])+", distance: "+str(bestMetricsNorm[2]*newNormArray[2]))
+            print("-Ratio: "+"curvature: "+str(bestMetricsNorm[0])+", length: "+str(bestMetricsNorm[1])+", distance: "+str(bestMetricsNorm[2]))
+
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
-            print(' - memory use: '+ str(round(memoryUse,4)))
+            print('\n - memory use: '+ str(round(memoryUse,4)))
             #summary[i_run+1] = {'n':n_candidates, 'T':T_arr, 'cost':cost_arr, 'best':best_arr}               
             
             # Final solution  
@@ -761,6 +855,10 @@ class Cost:
 
         self.normValues = newValues
 
+    def setWeights(self, newWeights):
+        sum_weights = np.sum(newWeights)
+        self.weights = np.float_(newWeights)/sum_weights
+
     def calculateMetrics(self, state):
         """
         Calculates metrics of state
@@ -768,14 +866,19 @@ class Cost:
 
         cost_items = state.cost_items
 
-        curvature_measure = math.sqrt(cost_items.sum_excess_strain_roothair / cost_items.num_roothair)
-
         tot_len_measure = cost_items.sum_length_dummy / cost_items.sum_length_all
+
 
         if cost_items.num_roothair > 0:
             min_dist_measure = math.sqrt(cost_items.sum_min_distance_roothair / cost_items.num_roothair)
+            if cost_items.sum_excess_strain_roothair > 0:
+                curvature_measure = math.sqrt(cost_items.sum_excess_strain_roothair / cost_items.num_roothair)
+            else:
+                curvature_measure = 0.0
         else:
             min_dist_measure = 0.0
+            curvature_measure = 0.0
+
 
         return np.array([curvature_measure, tot_len_measure, min_dist_measure])
     
