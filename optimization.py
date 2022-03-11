@@ -129,19 +129,19 @@ class Optimize():
             print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
 
             print("\n*** Determine final SA parameters")
-            print("Goal: "+"curvature: "+str(w_curve/normArray[0])+", length: "+str(w_length/normArray[1])+", distance: "+str(w_dist/normArray[2]))
+            #print("Goal: "+"curvature: "+str(w_curve/normArray[0])+", length: "+str(w_length/normArray[1])+", distance: "+str(w_dist/normArray[2]))
             
             # Calculate new normalization values
             auto_weights = np.array([w_curve, w_length, w_dist]) 
-            if np.any(auto_weights): 
-                if not np.all(auto_weights):        
-                    min_non_zero = min(val for val in auto_weights if val > 0)
-                    ind_zeros = np.where(auto_weights == 0)[0]
-                    auto_weights[ind_zeros] = min_non_zero
-                else:
-                    pass
-            else:
-                auto_weights = np.array([1.,1.,1.])        
+            ind_zeros = np.where(auto_weights < 1e-5)[0]
+            len_zeros = len(ind_zeros)
+            if len_zeros == 0:                      # if all are larger than zero, then leave as is 
+                pass
+            elif len_zeros == 1:                    # if any is ~zero, then set to lowest non-zero value
+                min_non_zero = min(val for val in auto_weights if val >= 1e-5)
+                auto_weights[ind_zeros] = min_non_zero
+            else:                                   # if 2 or 3 are zero, then set all to one; i.e. just use normArray
+                auto_weights = np.array([1.,1.,1.])   
             newNormArray = normArray/auto_weights # new normalization values
 
             # Parameters for main Simulated Annealing process
@@ -156,6 +156,7 @@ class Optimize():
             averageCost = csMaker.initialCost()                         # calcuulate initial cost from average of all costs
 
             print("rand curvature: "+str(1./normArray[0])+", rand length: "+str(1./normArray[1])+". rand distance: "+str(1./normArray[2]))
+            print("Goal: "+"curvature: "+str(auto_weights[0]/normArray[0])+", length: "+str(auto_weights[1]/normArray[1])+", distance: "+str(auto_weights[2]/normArray[2]))
             print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
 
             # Initialize Simulated Annealing object
