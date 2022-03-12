@@ -173,7 +173,7 @@ class Optimize():
 
             print("\nRandom: curvature: "+str(1./normArray[0])+", length: "+str(1./normArray[1])+", distance: "+str(1./normArray[2]))
             print("Goal: "+"curvature: "+str(auto_weights[0]/normArray[0])+", length: "+str(auto_weights[1]/normArray[1])+", distance: "+str(auto_weights[2]/normArray[2]))
-            print("Result: "+"curvature: "+str(bestMetricsNorm[0]/newNormArray[0])+", length: "+str(bestMetricsNorm[1]/newNormArray[1])+", distance: "+str(bestMetricsNorm[2]*newNormArray[2]))
+            print("Result: "+"curvature: "+str(bestMetricsNorm[0]/newNormArray[0])+", length: "+str(bestMetricsNorm[1]/newNormArray[1])+", distance: "+str(bestMetricsNorm[2]/newNormArray[2]))
             print("-Ratio: "+"curvature: "+str(bestMetricsNorm[0])+", length: "+str(bestMetricsNorm[1])+", distance: "+str(bestMetricsNorm[2]))
 
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
