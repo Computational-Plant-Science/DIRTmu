@@ -109,7 +109,7 @@ class Preprocessing:
 
         return imgNew
     
-    def removeFarRootHairs(self, img, max_distance=50, id_root=1, id_background=2, id_roothair=3):
+    def removeFarRootHairs(self, img, max_distance=10, id_root=1, id_background=2, id_roothair=3):
         # Removes components of root hair components (connected components) if their distance to the root is larger than max_distance
         # i.e. floating root hair pixels (such as from noisy classification) are removed
         
