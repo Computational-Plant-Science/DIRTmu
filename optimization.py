@@ -285,7 +285,7 @@ class SimulatedAnnealing:
         n_iterations = 0 
 
         print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                    + str([round(c,3) for c in metricsNorm]) + str(round(float(self.R)/self.R_max,3)))
+                    + str([round(c,3) for c in metricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
 
         while (self.currTemp > self.finalTemp or self.R < self.R_max) and n_iterations < self.maxLevels: # T must be less than finalTemp and R must be larger than R_max to stop
 
@@ -331,6 +331,8 @@ class SimulatedAnnealing:
                 else:
                     self.state.reverseChanges()
                     self.R += 1                     # Increase number of consecutive rejeced moves
+                if self.R >= self.R_max and self.currTemp <= self.finalTemp:
+                    break
 
             # Reduce temperature
             self.currTemp = self.currTemp*self.alpha
@@ -339,7 +341,7 @@ class SimulatedAnnealing:
             n_iterations += 1
 
             print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                        + str([round(c,3) for c in bestMetricsNorm]) + str(round(float(self.R)/self.R_max,3)))
+                        + str([round(c,3) for c in bestMetricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
 
         ratio_complete = 1.-best_metrics[1]
         # Uncomment for plotting images:
