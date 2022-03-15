@@ -222,9 +222,9 @@ def classify_roothair(roothairs, contour):
 
     return allNearestContours, allNearestPtIDs, allDists
 
-def calculate_max_density(contours,allNearestContours,allNearestPtIDs, windowSizePxl):
+def calculate_densities(contours,allNearestContours,allNearestPtIDs, windowSizePxl):
 
-    max_density = -1
+    all_densities_list = []
 
     for segmentIndex, contour in enumerate(contours):
         ids = np.where(np.array(allNearestContours)==segmentIndex)[0]
@@ -232,18 +232,17 @@ def calculate_max_density(contours,allNearestContours,allNearestPtIDs, windowSiz
             continue
         ptIDs = sorted(np.array(allNearestPtIDs)[ids])
         cumLength = cumulativelength(contour[1],contour[0])
-        current_density = rollingSum(np.array(cumLength)[ptIDs], cumLength[0], cumLength[-1], windowSizePxl, 1)
-        if current_density > max_density:
-            max_density = current_density
+        current_densities = rollingSum(np.array(cumLength)[ptIDs], cumLength[0], cumLength[-1], windowSizePxl, 1)
+        all_densities_list.extend(current_densities)
 
-    return max_density
+    return all_densities_list
 
 def rollingSum(x, start, stop, windowSizePxl=1000, step=1):
     
     if stop < windowSizePxl:
-        return -1
+        return []
 
-    max_sum = 0
+    density_list = []
 
     for start in range(int(start), int(stop - windowSizePxl + step), int(step)):
         stop = start + windowSizePxl
@@ -251,8 +250,8 @@ def rollingSum(x, start, stop, windowSizePxl=1000, step=1):
         for val in x:
             if val >= start and val < stop:
                 current_sum = current_sum + 1
-        max_sum = max(current_sum, max_sum)
-    return max_sum
+        density_list.append(current_sum)
+    return density_list
 
 
 def segmentRootComponents(labelImg, rootIdx):
@@ -350,7 +349,17 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
     segLength = [length(seg[1],seg[0]) for seg in edge_segments_smooth]
 
     mainIds = np.where(np.array(edge_classes)=='main')[0]
-    max_density = calculate_max_density(np.array(edge_segments_smooth)[mainIds],closestSegments,ptIndices,float(window_size)/pixel_size)
+    rolling_sum_densities = calculate_densities(np.array(edge_segments_smooth)[mainIds],closestSegments,ptIndices,float(window_size)/pixel_size)
+    if len(rolling_sum_densities) > 0:
+        rs_density_max = max(rolling_sum_densities)
+        rs_density_min = min(rolling_sum_densities)
+        rs_density_mean = np.mean(rolling_sum_densities)
+        rs_density_std = np.std(rolling_sum_densities)
+    else:
+        rs_density_max = -1
+        rs_density_min = -1
+        rs_density_mean = -1
+        rs_density_std = -1
 
     topCount = sum([val for ind,val in enumerate(rhCount) if edge_position[ind]=='top'])
     topLength = pixel_size * sum([val for ind,val in enumerate(segLength) if edge_position[ind]=='top'])
@@ -370,8 +379,11 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
                 "Bottom Edge Length (mu)":bottomLength,
                 "Top RH Count":topCount,
                 "Top Edge Length (mu)":topLength,
-                "Densest RH Count":max_density,
-                "Densest Edge Length (mu)":window_size,
+                "RH Count Max": rs_density_max,
+                "RH Count Min": rs_density_min,
+                "RH Count Mean": rs_density_mean,
+                "RH Count Std": rs_density_std,
+                "Window size (mu)":window_size,
                 "Root Diameter (mu)":root_diameter*pixel_size}
 
     return results, rhClass, rhPositions, {"closestSegments":closestSegments, "edge_classes":edge_classes, "edge_segments":edge_segments, "edge_position":edge_position}
