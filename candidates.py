@@ -671,21 +671,26 @@ class Conflicts:
         # i.e. branching is not allowed
         # Unless close to root surface
 
-        startDir_1 = tuple([path_1[0],path_1[1]])    
-        endDir_1 = tuple([path_1[-1],path_1[-2]])
+        startDir_1 = tuple([path_1[0],path_1[1]])       # Direction from outside to inside
+        endDir_1 = tuple([path_1[-1],path_1[-2]])       # Direction from outside to inside
 
-        startDir_2 = tuple([path_2[0],path_2[1]])    
-        endDir_2 = tuple([path_2[-1],path_2[-2]])
+        startDir_2 = tuple([path_2[0],path_2[1]])       # Direction from outside to inside
+        endDir_2 = tuple([path_2[-1],path_2[-2]])       # Direction from outside to inside
 
         s1 = set([startDir_1, endDir_1])
         s2 = set([startDir_2, endDir_2])
 
+        conflict = False
+        branches_at_root = False
         overlap = s1.intersection(s2)
         if len(overlap) > 0:
             for i in overlap:
                 if self.segments[i[0]].minDistToEdge > 10:
-                    return True
-        return False
+                    conflict = True # Conflict
+                elif self.segments[i[0]].type == 1:
+                    if len(set(path_1).intersection(path_2))==3 and len(path_1)>3 and len(path_2)>3:
+                        branches_at_root = True
+        return conflict, branches_at_root # No conflict
         
     def rule_2(self, path_1, path_2):
         # Rule 2:
@@ -774,10 +779,13 @@ class Conflicts:
 
     def hasConflict(self, path_1, path_2, line_1, line_2, segment_ids_1, segment_ids_2):
 
-        if self.rule_1(path_1, path_2):
+        conflict_1, branches_at_root = self.rule_1(path_1, path_2)
+        if conflict_1:
             return True
-
-        if self.rule_2(path_1, path_2):
+        if branches_at_root:
+            return False
+            
+        if self.rule_2(path_1, path_2) and not branches_at_root:
             return True
         
         if self.rule_3(path_1, path_2, line_1, line_2, segment_ids_1, segment_ids_2):
@@ -790,11 +798,11 @@ class Conflicts:
         if len(set(path_1).intersection(set(path_2))) != 3:
             return False
             
-        startDir_1 = tuple(path_1[0:3:1])    
-        endDir_1 = tuple(path_1[-1:-4:-1])
+        startDir_1 = tuple(path_1[0:3:1])       # Direction from outside to inside
+        endDir_1 = tuple(path_1[-1:-4:-1])      # Direction from outside to inside
 
-        startDir_2 = tuple(path_2[2::-1])
-        endDir_2 = tuple(path_2[-3::])
+        startDir_2 = tuple(path_2[2::-1])       # Direction from inside to outside
+        endDir_2 = tuple(path_2[-3::])          # Direction from outside to inside
 
         s1 = set([startDir_1, endDir_1])
         s2 = set([startDir_2, endDir_2])
