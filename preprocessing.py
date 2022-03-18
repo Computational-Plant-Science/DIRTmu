@@ -189,7 +189,7 @@ class Preprocessing:
             return classes
         data = np.zeros_like(classes,dtype=bool)
         data[np.where(classes == id_remove)] = True
-        data_clean = morph.remove_small_holes(data,min_size=size,connectivity=2)
+        data_clean = morph.remove_small_holes(data,area_threshold=size,connectivity=2)
         data_clean[np.where(classes != id_remove)] = True
         classes_new = data_clean*classes
         return classes_new
@@ -239,7 +239,7 @@ class Preprocessing:
         selem = np.array([  [0,1,0],
                             [1,0,1],
                             [0,1,0]])
-        fill = rank.sum(skel.astype('int64'), selem) 
+        fill = rank.sum(skel, selem) 
         skel[np.where(fill == 4)] = 1
 
         return skel, distance

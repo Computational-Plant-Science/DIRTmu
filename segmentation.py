@@ -114,8 +114,8 @@ class Segmentation:
         keys = range(1,np.amax(self.segmentIDs)+1) #TODO: sort(unique(segmentIDs))
         self.segments = {key: None for key in keys}
         for key in keys:
-            pixels = zip(*self.segmentPixels[key])
-            self.segments[key] = Segment(key,self.segmentPixels[key],self.segmentType[key],self.distance[pixels])
+            rows, cols = zip(*self.segmentPixels[key])
+            self.segments[key] = Segment(key,self.segmentPixels[key],self.segmentType[key],self.distance[np.array(rows), np.array(cols)])
             if self.segmentType[key] == 2:
                 self.segments[key].sort()
 
@@ -123,8 +123,9 @@ class Segmentation:
         # Computes all tips that are close to the main root
 
         for s in self.segments.values():
-
-            distances = distToEdge[zip(*s.pixels)]
+            zip(*s.pixels)
+            rows, cols = zip(*s.pixels)
+            distances = distToEdge[np.array(rows), np.array(cols)]
             s.minDistToEdge = min(distances[0],distances[-1])
             s.maxDistToEdge = max(distances[0],distances[-1])
 
