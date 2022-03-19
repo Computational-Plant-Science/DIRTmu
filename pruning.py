@@ -163,16 +163,16 @@ def findShortBranches(segmentType,adjList,nTips,segmentPixels,nneighbours,distan
 
     shortBranches = np.zeros([len(adjList),],dtype='uint8')
 
-    tipBranches = np.where(np.logical_and(segmentType==2,nTips==1))[0]
+    tipBranches = np.where(np.logical_and(segmentType==2,nTips==1))[0]      # Segments (type=2) that have a single tip (type=1) neighbor
 
     for idx, tipBranchID in enumerate(tipBranches):
         withinDistance = np.zeros([len(segmentPixels[tipBranchID]),],dtype='uint8')
         for idy, pixelJunction in enumerate(segmentPixels[tipBranchID]):
             if nneighbours[pixelJunction] > 2:
                 for idz, pixelOther in enumerate(segmentPixels[tipBranchID]):
-                    #if calcDistance(pixelJunction,pixelOther) < distance[pixelJunction]+1.0:
-                    #if distance[pixelOther] + calcDistance(pixelJunction,pixelOther) - distance[pixelJunction] < 3.0:
-                    if distance[pixelOther] + calcDistance(pixelJunction,pixelOther) - distance[pixelJunction] < 3.0 * (distance[pixelJunction]-distance[pixelOther]+1.0)/calcDistance(pixelJunction,pixelOther) :
+                    if idy==idz:
+                        withinDistance[idz] = 1
+                    elif distance[pixelOther] + calcDistance(pixelJunction,pixelOther) - distance[pixelJunction] < 3.0 * (distance[pixelJunction]-distance[pixelOther]+1.0)/calcDistance(pixelJunction,pixelOther) :
                         withinDistance[idz] = 1
         if np.all(withinDistance):
             shortBranches[tipBranchID]=1
