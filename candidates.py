@@ -148,6 +148,8 @@ class Candidate:
         else:
             return False
         
+    # TODO: Deprecated function. Remove
+    """
     def reference_strain(self):       
         indices = [index for index, val in enumerate(self.path) if self.segments[val].type == 1 or self.segments[val].type == 3]
         start_end = zip(indices,indices[1:])
@@ -159,7 +161,9 @@ class Candidate:
             sub_candidate.fitCurve(is_dummy=True)
             se = se + sub_candidate.curve.strainenergy()
         return se
-    
+    """
+    # TODO: Deprecated function. Remove
+    """
     def reference_curvature(self):       
         indices = [index for index, val in enumerate(self.path) if self.segments[val].type == 1 or self.segments[val].type == 3]
         start_end = zip(indices,indices[1:])
@@ -171,7 +175,7 @@ class Candidate:
             sub_candidate.fitCurve(is_dummy=True)
             tc = tc + sub_candidate.curve.totalcurvature()
         return tc
-        
+    """    
     # Concatanate individual branches in order of path
     def createPixels(self):
         pixels = []
