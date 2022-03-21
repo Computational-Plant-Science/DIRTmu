@@ -1,5 +1,3 @@
-from itertools import izip
-
 class Candidate_Graph:
     """
     Creates a graph from a candidate path.
@@ -8,7 +6,7 @@ class Candidate_Graph:
     """
     def __init__(self, path):
         self.graph = {}
-        for first, second in izip(path, path[1:]):
+        for first, second in zip(path, path[1:]):
 
             if first in self.graph:
                 self.graph[first].append(second)

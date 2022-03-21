@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -7,7 +7,7 @@ import math
 
 import numpy as np
 from skimage import measure
-from skimage.draw import circle
+from skimage.draw import disk as drawDisk
 from skimage.morphology import medial_axis, opening, closing, disk
 from skimage.transform import resize
 from skimage.measure import regionprops, label
@@ -94,7 +94,7 @@ def reconstructRoot(MAimg):
     rootImg=np.zeros(MAimg.shape, dtype=int)
     for i in zip(pos[0],pos[1]):
         radius =  MAimg[i[0],i[1]]
-        rr_img, cc_img = circle(i[0], i[1], radius, shape=imgShape)
+        rr_img, cc_img = drawDisk(i, radius, shape=imgShape)
         try:
             rootImg[rr_img, cc_img] = 255
         except: pass
@@ -119,7 +119,7 @@ def reconstructLatRoots(rootImg, mainRootImg):
     for prop in props:
         
         if prop['area'] < mainRootSize*0.001:
-            coords = zip(*prop['coords'])
+            coords = list(zip(*prop['coords']))
             latRootImg[coords[0], coords[1]] = 0
 
     centroid = [prop['centroid'] for prop in props]
@@ -200,7 +200,7 @@ def classify_roothair(roothairs, contour):
 
     #pts, segmentIDs = zip(*[(pt,ind) for (ind,seg) in enumerate(contour) for pt in seg])
     # Get points from all contours into single list + for each point its location in corresponding contour +list with indices of contour
-    pts, idsOfPts, idsOfContours = zip(*[(pt,ptInd,segmentInd) for (segmentInd,segment) in enumerate(contour) for ptInd,pt in enumerate(segment)])
+    pts, idsOfPts, idsOfContours = list(zip(*[(pt,ptInd,segmentInd) for (segmentInd,segment) in enumerate(contour) for ptInd,pt in enumerate(segment)]))
     nbrs = NearestNeighbors(n_neighbors=1)
     nbrs.fit(pts)
 

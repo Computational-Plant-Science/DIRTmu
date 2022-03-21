@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 '''
 ----------------------------------------------------------------------------------------------------
@@ -124,8 +124,8 @@ def run_pipeline(args):
     elapsed_time = time.time() - time_intermediate
     print('Elapsed time: ' + time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
     meta_data['time_segments'] = elapsed_time
-    meta_data['n_tips'] = len(np.where(np.array(rh_segm.segmentType.values())==1)[0])
-    meta_data['n_junctions'] = len(np.where(np.array(rh_segm.segmentType.values())>2)[0])
+    meta_data['n_tips'] = len(np.where(np.array(list(rh_segm.segmentType.values()))==1)[0])
+    meta_data['n_junctions'] = len(np.where(np.array(list(rh_segm.segmentType.values()))>2)[0])
     
     # 4. Get candidates
     time_intermediate = time.time()

@@ -182,12 +182,12 @@ def sa_plots(candidate_arr, summary, classes):
             sub_cost_arr = np.exp(s['sub_cost'][:i+1])
             cost_arr = s['cost'][:i+1]
             best_arr = s['best'][:i+1]
-            ax2.plot(range(len(T_arr)), zip(*sub_cost_arr)[0],'r-',linewidth=0.5)
-            ax2.plot(range(len(T_arr)), zip(*sub_cost_arr)[1],'b-',linewidth=0.5)
-            ax2.plot(range(len(T_arr)), zip(*sub_cost_arr)[2],'g-',linewidth=0.5)
-            ax2.plot(range(len(T_arr)), zip(*sub_cost_arr)[3],'orange',linewidth=0.5)
-            ax2.plot(range(len(T_arr)), cost_arr,'k-',linewidth=1)
-            ax2.plot(range(len(T_arr)), best_arr,'k:',linewidth=1)
+            ax2.plot(list(range(len(T_arr))), list(zip(*sub_cost_arr))[0],'r-',linewidth=0.5)
+            ax2.plot(list(range(len(T_arr))), list(zip(*sub_cost_arr))[1],'b-',linewidth=0.5)
+            ax2.plot(list(range(len(T_arr))), list(zip(*sub_cost_arr))[2],'g-',linewidth=0.5)
+            ax2.plot(list(range(len(T_arr))), list(zip(*sub_cost_arr))[3],'orange',linewidth=0.5)
+            ax2.plot(list(range(len(T_arr))), cost_arr,'k-',linewidth=1)
+            ax2.plot(list(range(len(T_arr))), best_arr,'k:',linewidth=1)
             ax2.set_xlim(0,len(s['sols']))
             ax2.set_ylim(1,max(s['cost']))
             ax2.set_xlabel('iteration')

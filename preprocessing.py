@@ -127,7 +127,7 @@ class Preprocessing:
         for i in np.unique(labelImg):
             if i!=0:
                 comp = np.where(labelImg==i)
-                coordinates = zip(*comp)
+                coordinates = list(zip(*comp))
                 # distance to edge and indices (location in 'edge')
                 edgeDist, edgeIDs = nbrs.kneighbors(coordinates)
                 if min(edgeDist) > max_distance:
@@ -260,7 +260,7 @@ class Preprocessing:
         edge = self.find_edge(classes, id_root)       # pixel coordinates of edge of main root
         skel_dist_to_edge = np.zeros(skel.shape)
         if len(edge) > 0:
-            skelCoords = zip(*np.where(skel))   # pixel coordinates of medial axis
+            skelCoords = list(zip(*np.where(skel)))   # pixel coordinates of medial axis
             nbrs = NearestNeighbors(n_neighbors=1)
             nbrs.fit(edge)
             # distance to edge and indices (location in 'edge')
@@ -286,5 +286,5 @@ class Preprocessing:
                         [1, 1, 1]])
         n_neighbours_edge = segmentation.Segmentation.numOfNeighbours(edge_loc, arr)
         n_neighbours_edge = n_neighbours_edge * edge_mask
-        edge = zip(*np.where(n_neighbours_edge > 0))
+        edge = list(zip(*np.where(n_neighbours_edge > 0)))
         return edge

@@ -123,7 +123,6 @@ class Segmentation:
         # Computes all tips that are close to the main root
 
         for s in self.segments.values():
-            zip(*s.pixels)
             rows, cols = zip(*s.pixels)
             distances = distToEdge[np.array(rows), np.array(cols)]
             s.minDistToEdge = min(distances[0],distances[-1])

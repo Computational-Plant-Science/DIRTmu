@@ -12,7 +12,6 @@ import warnings
 #import matplotlib.gridspec as gs
 
 import numpy as np
-from lines import line
 from scipy.interpolate import splprep, splev
 from scipy import signal
 from scipy import interpolate
@@ -21,6 +20,7 @@ from itertools import product, groupby
 from operator import itemgetter
 import graph_tool.all as gt
 
+from lines import line
 
 def pipeline(graph, segments):
         
@@ -318,10 +318,11 @@ class Candidate:
     def fitCurve(self, is_dummy=False):
 
         # x,y, coordinates
-        x, y = np.array(zip(*self.pixels))
-        
+        x,y = zip(*self.pixels)
+        x,y = np.array(x), np.array(y)
+
         # Index and medial axis (MA) distance values (distance = 1/2*diameter)
-        x_dist = range(len(self.diameter))      
+        x_dist = list(range(len(self.diameter)))      
         y_dist = [0.5*d for d in self.diameter]
         
         # Smooth distance values with Savitzky Golay filter
@@ -720,7 +721,7 @@ class Conflicts:
         returns groups of consecutive values in iterable
         """
         for k, g in groupby(enumerate(iterable), lambda ix : ix[0] - ix[1]):
-            yield map(itemgetter(1), g)
+            yield list(map(itemgetter(1), g))
 
     def intersections(self, list_1, list_2):
         """
