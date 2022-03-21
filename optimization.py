@@ -212,20 +212,26 @@ class Optimize():
         
         sa_parameters = {'SA_finalProb':finalProb,
                          'SA_initialProb':initialProb,
-                         'SA_normCurvature': normArray[0],
-                         'SA_normLength': normArray[1],
-                         'SA_normDistance': normArray[2],
+                         'SA_randCurvature': 1./normArray[0],
+                         'SA_randLength': 1./normArray[1],
+                         'SA_randDistance': 1./normArray[2],
+                         'SA_goalCurvature': auto_weights[0]/normArray[0],
+                         'SA_goalLength': auto_weights[1]/normArray[1],
+                         'SA_goalDistance': auto_weights[2]/normArray[2],
                          'SA_initialTemp': initialTemp,
                          'SA_alpha': alpha,
                          'SA_finalTemp': finalTemp,
-                         'SA_averageCost': averageCost,
-                         'SA_nIterations': n_iterations}
+                         'SA_randCost': averageCost,
+                         'SA_nIterations': n_iterations,
+                         'SA_weightCurvature': self.cost.weights[0],
+                         'SA_weightLength': self.cost.weights[1],
+                         'SA_weightDistance': self.cost.weights[2]}
 
-        solution_summary = {'SA_bestCost':best_cost,
-                         'SA_bestCurvatureCost': bestMetricsNorm[0],
-                         'SA_bestLengthCost': bestMetricsNorm[1],
-                         'SA_bestDistanceCost': bestMetricsNorm[2],
-                         'SA_ratioComplete': ratio_complete}
+        solution_summary = {'SA_resultCost':best_cost,
+                         'SA_resultCurvature': bestMetricsNorm[0]/newNormArray[0],
+                         'SA_resultLength': bestMetricsNorm[1]/newNormArray[1],
+                         'SA_resultDistance': bestMetricsNorm[2]/newNormArray[2],
+                         'SA_resultRatioComplete': ratio_complete}
 
         return roothair_paths, solution_summary, sa_parameters
 

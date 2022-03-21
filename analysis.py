@@ -99,52 +99,67 @@ class Results:
         Roothairs must be a flattened list of candidate objects
         '''
         data = {}
-        
+        col_order = []
+
         if self.length_mu:
             data['length_mu'] = [rh.length_total() * pixel_size for rh in roothairs]
+            col_order.append('length_mu')
             
         if self.total_curvature:
-            data['total_curvature'] = [rh.totalcurvature() for rh in roothairs]
-            
+            data['curvature_total'] = [rh.totalcurvature() for rh in roothairs]
+            col_order.append('curvature_total')
+
         if self.mean_curvature:
-            data['mean_curvature'] = [rh.mean_curvature() for rh in roothairs]
-            
+            data['curvature_mean'] = [rh.mean_curvature() for rh in roothairs]
+            col_order.append('curvature_mean')
+
         if self.median_curvature:
-            data['median_curvature'] = [rh.median_curvature() for rh in roothairs]
-            
+            data['curvature_median'] = [rh.median_curvature() for rh in roothairs]
+            col_order.append('curvature_median')
+
         if self.min_curvature:
-            data['min_curvature'] = [rh.min_curvature() for rh in roothairs]
-            
+            data['curvature_min'] = [rh.min_curvature() for rh in roothairs]
+            col_order.append('curvature_min')
+
         if self.max_curvature:
-            data['max_curvature'] = [rh.max_curvature() for rh in roothairs]
-            
-        if self.min_diameter:
-            data['min_diameter_mu'] = [rh.min_diameter() * pixel_size for rh in roothairs]
-            
-        if self.max_diameter:
-            data['max_diameter_mu'] = [rh.max_diameter() * pixel_size for rh in roothairs]
-            
+            data['curvature_max'] = [rh.max_curvature() for rh in roothairs]
+            col_order.append('curvature_max')
+
         if self.mean_diameter:
-            data['mean_diameter_mu'] = [rh.mean_diameter() * pixel_size for rh in roothairs]
-            
+            data['diameter_mu_mean'] = [rh.mean_diameter() * pixel_size for rh in roothairs]
+            col_order.append('diameter_mu_mean')
+
         if self.median_diameter:
-            data['median_diameter_mu'] = [rh.median_diameter() * pixel_size for rh in roothairs]
+            data['diameter_mu_median'] = [rh.median_diameter() * pixel_size for rh in roothairs]
+            col_order.append('diameter_mu_median')
+
+        if self.min_diameter:
+            data['diameter_mu_min'] = [rh.min_diameter() * pixel_size for rh in roothairs]
+            col_order.append('diameter_mu_min')
+
+        if self.max_diameter:
+            data['diameter_mu_max'] = [rh.max_diameter() * pixel_size for rh in roothairs]
+            col_order.append('diameter_mu_max')
             
         if self.l2t_ratio:
-            data['l2t_ratio'] = [rh.length2diameter() for rh in roothairs]
-            
+            data['length_to_diameter'] = [rh.length2diameter() for rh in roothairs]
+            col_order.append('length_to_diameter')
+
         if self.connectivity:
-            data['connectivity'] = [rh.connectivity() for rh in roothairs]
+            data['rel_dist_to_root'] = [rh.connectivity() for rh in roothairs]
+            col_order.append('rel_dist_to_root')
 
         if self.root_class:
             data['root_classes'] = [val for val in root_classes]
+            col_order.append('root_classes')
 
         if self.root_position:
             data['root_positions'] = [val for val in root_positions]
-            
+            col_order.append('root_positions')
+
         # put root hair imformation into tabel
         table = pd.DataFrame(data)
-        table.index = table.index + 1
+        table = table[col_order]
         return table
     
     def out(self, data, roothairs, path_name):

@@ -373,16 +373,16 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
     #rh_length_main = sum([val for ind,val in enumerate(rh_length) if edge_classes[closestSegments[ind]]=='main'])
     #rh_length_lateral = sum([val for ind,val in enumerate(rh_length) if edge_classes[closestSegments[ind]]=='lateral'])
     
-    results = {"Total RH Count":totCount, 
-                "Total Edge Length (mu):":totLength,
-                "Bottom RH Count":bottomCount,
-                "Bottom Edge Length (mu)":bottomLength,
-                "Top RH Count":topCount,
-                "Top Edge Length (mu)":topLength,
+    results = {"RH Count Total":totCount, 
+                "RH Count Bottom":bottomCount,
+                "RH Count Top":topCount,
                 "RH Count Max": rs_density_max,
                 "RH Count Min": rs_density_min,
                 "RH Count Mean": rs_density_mean,
                 "RH Count Std": rs_density_std,
+                "Edge Length Total (mu):":totLength,
+                "Edge Length Bottom (mu)":bottomLength,
+                "Edge Length Top (mu)":topLength,
                 "Window size (mu)":window_size,
                 "Root Diameter (mu)":root_diameter*pixel_size}
 

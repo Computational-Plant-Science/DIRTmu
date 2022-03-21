@@ -382,13 +382,13 @@ def run_pipeline(args):
     table_roothairs = results.get(inliers, args.pixel_size, root_classes=root_classes, root_positions=root_positions)
     table_outliers = results.get(outliers, args.pixel_size, root_classes=['None']*len(outliers), root_positions=['None']*len(outliers))
     
-    summary['area_roothair'] = area_roothair
-    summary['area_root'] = area_root
-    summary['area_background'] = area_background
+    summary['Area Roothair (pxl)'] = area_roothair
+    summary['Area Root (pxl)'] = area_root
+    summary['Area Background (pxl)'] = area_background
 
-    summary['ratio_completeness'] = solution_summary['SA_ratioComplete']
-    summary['len_inliers'] = sum([c.length() for c in inliers]) * args.pixel_size
-    summary['len_outliers'] = sum([c.length() for c in outliers]) * args.pixel_size
+    summary['Ratio Completeness'] = solution_summary['SA_resultRatioComplete']
+    summary['Length Inliers (mu)'] = sum([c.length() for c in inliers]) * args.pixel_size
+    summary['Length Outliers (mu)'] = sum([c.length() for c in outliers]) * args.pixel_size
 
 
     elapsed_time = time.time() - time_intermediate
@@ -401,12 +401,14 @@ def run_pipeline(args):
     time_intermediate = time.time()
 
     rh_io.save_table(table_roothairs, os.path.join(args.output_path, experiment_name+'_roothairs.csv'))
+    col_order = sorted(summary.keys(), key=lambda x:x.lower())
     table = pd.DataFrame(summary, index=[experiment_name])
+    table = table[col_order]
     rh_io.save_table(table, os.path.join(args.output_path, experiment_name+'_summary.csv'))
 
     if args.print_all:
-        results.out(data, inliers, os.path.join(args.output_path, experiment_name+'_roothairs.pkl'))
-        results.out(data, outliers, os.path.join(args.output_path, experiment_name+'_outliers.pkl'))
+        # results.out(data, inliers, os.path.join(args.output_path, experiment_name+'_roothairs.pkl'))
+        # results.out(data, outliers, os.path.join(args.output_path, experiment_name+'_outliers.pkl'))
         im = Image.fromarray(data)
         im.save(os.path.join(args.output_path, experiment_name+"_classes.tiff"),compression='tiff_lzw')
         rh_io.save_table(table_outliers,  os.path.join(args.output_path, experiment_name+'_outliers.csv'))
@@ -442,14 +444,17 @@ def run_pipeline(args):
     print('Total time: ' + time.strftime("%H:%M:%S", time.gmtime(time_total)))
 
     if args.print_all:
-        with open(os.path.join(args.output_path, experiment_name+'_meta.csv'), 'wb') as f:
+        with open(os.path.join(args.output_path, experiment_name+'_meta.csv'), 'w') as f:
             writer = csv.writer(f)
-            for row in meta_data.iteritems():
-                writer.writerow(row)
-            for row in sa_parameters.iteritems():
-                writer.writerow(row)   
-            for row in solution_summary.iteritems():
-                writer.writerow(row)
+            sortednames=sorted(meta_data.keys(), key=lambda x:x.lower())
+            for name in sortednames:
+                writer.writerow((name,meta_data[name]))
+            sortednames=sorted(sa_parameters.keys(), key=lambda x:x.lower())
+            for name in sortednames:
+                writer.writerow((name,sa_parameters[name]))
+            sortednames=sorted(solution_summary.keys(), key=lambda x:x.lower())
+            for name in sortednames:
+                writer.writerow((name,solution_summary[name]))
 
 
     print(" ")
