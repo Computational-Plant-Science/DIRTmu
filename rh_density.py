@@ -349,7 +349,8 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
     segLength = [length(seg[1],seg[0]) for seg in edge_segments_smooth]
 
     mainIds = np.where(np.array(edge_classes)=='main')[0]
-    rolling_sum_densities = calculate_densities(np.array(edge_segments_smooth)[mainIds],closestSegments,ptIndices,float(window_size)/pixel_size)
+    edge_segments_main = [edge_segments_smooth[i] for i in mainIds]
+    rolling_sum_densities = calculate_densities(edge_segments_main,closestSegments,ptIndices,float(window_size)/pixel_size)
     if len(rolling_sum_densities) > 0:
         rs_density_max = max(rolling_sum_densities)
         rs_density_min = min(rolling_sum_densities)
