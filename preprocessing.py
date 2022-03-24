@@ -227,7 +227,7 @@ class Preprocessing:
         data[np.where(classes == id_roothair)] = 1
 
         # Compute the medial axis (skeleton) and the distance transform
-        skel, distance = morph.medial_axis(data, return_distance=True)
+        skel, distance = morph.medial_axis(data, return_distance=True, random_state=0)
 
         # Clip medial axis of root (keep only root hairs)
         data = np.zeros_like(classes)
