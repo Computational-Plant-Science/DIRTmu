@@ -608,9 +608,7 @@ class CoolingScheduleMaker:
         Creates neighbors n times start at given solution
         """
         nPaths = len(self.state.binaryList)
-
         for _ in range(n):
-
             # Get position (component id) to be changed
             position = random.randint(0,nPaths-1)
 
@@ -628,6 +626,41 @@ class CoolingScheduleMaker:
 
             self.costArray.append(cost)
             self.subCostArray.append(metrics)
+        
+        avg = np.mean(self.subCostArray,0)
+        std = np.std(self.subCostArray,0)
+        rse = 100 * std / avg / np.sqrt(len(self.subCostArray)) # Relative Standard Error
+        print(' Initial simulation ', avg, std, rse, len(self.subCostArray))
+
+        # Determine if more iterations are required based on Relative Standard Error
+        cv = std/avg            # Coefficient of variation
+        cv[cv>0.25] = 0.25      # If coefficient is too extreme, set to 0.25
+        nRequired = int(max((2.576*100*cv/0.1)**2)) # 99% have to be withing 0.1*cv
+        nMore = nRequired-n
+
+        for _ in range(nMore):
+            # Get position (component id) to be changed
+            position = random.randint(0,nPaths-1)
+
+            # Change current solution
+            isvalid = self.state.neighbor(position)
+
+            # If is invalid reverse and skip
+            if not isvalid:
+                self.state.reverseChanges()
+                continue
+                
+            # Calculate cost for current state
+            metrics = self.costFunction.calculateMetrics(self.state)
+            cost = self.costFunction.calculateCost(metrics)
+
+            self.costArray.append(cost)
+            self.subCostArray.append(metrics)
+
+        avg = np.mean(self.subCostArray,0)
+        std = np.std(self.subCostArray,0)
+        rse = 100 * std / avg / np.sqrt(len(self.subCostArray)) # Relative Standard Error
+        print(' Final simulation ', avg, std, rse, len(self.subCostArray))
 
     def recalculateCost(self):
         """
@@ -652,7 +685,7 @@ class CoolingScheduleMaker:
         Determines average values of sub cost for normalization of cost.
         Output: numpy array with 3 normalization values (float)
         """
-        normValuesRand = 1. / np.median(self.subCostArray,0)
+        normValuesRand = 1. / np.mean(self.subCostArray,0)
         normValuesRand[normValuesRand == np.inf] = 0.0
         return normValuesRand
 
@@ -660,13 +693,13 @@ class CoolingScheduleMaker:
         """
         Calculates average increasing cost
         """
-        return np.median(self.deltaCostArray)
+        return np.mean(self.deltaCostArray)
 
     def initialCost(self):
         """
         Calculates average initial cost
         """
-        return np.median(self.costArray)
+        return np.mean(self.costArray)
         
 
     def getInitialTemp(self):
