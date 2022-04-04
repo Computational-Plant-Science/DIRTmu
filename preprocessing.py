@@ -105,7 +105,8 @@ class Preprocessing:
         imgNew = np.array(img)
         imgNew[rootPos] = id_background
         # Set large root component to root
-        imgNew[np.where(labelImg==largeLabelIdx)] = id_root
+        if largeLabelIdx>0:
+            imgNew[np.where(labelImg==largeLabelIdx)] = id_root
 
         return imgNew
     
@@ -118,6 +119,8 @@ class Preprocessing:
         roothairImg[roothairPos]=1
 
         edge = self.find_edge(img, id_root)       # pixel coordinates of edge of main root
+        if len(edge) == 0:
+            return np.array(img)
         nbrs = NearestNeighbors(n_neighbors=1)
         nbrs.fit(edge)
             
