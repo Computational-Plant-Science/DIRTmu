@@ -198,6 +198,7 @@ def run_pipeline(args):
     min_distance = []
     max_distance = []
     min_reference_curve = []
+    max_reference_curve = []
 
     for i,path in enumerate(good_candidates):
 
@@ -212,11 +213,12 @@ def run_pipeline(args):
         segment_ids.append(c.segment_ids)               # Append start-end index of segments in curve
         if args.measure == 'strain_energy':
             curve_measure.append(c.strainenergy())          # Append strain energy of curve
-            min_ref_value,_ = ref_segment_strain.calc(path, rh_segm.segments, c.segment_ids)
+            min_ref_value, max_ref_value = ref_segment_strain.calc(path, rh_segm.segments, c.segment_ids)
         else:
             curve_measure.append(c.totalcurvature())          # Append strain energy of curve
-            min_ref_value,_ = ref_segment_curvature.calc(path, rh_segm.segments, c.segment_ids)
+            min_ref_value, max_ref_value = ref_segment_curvature.calc(path, rh_segm.segments, c.segment_ids)
         min_reference_curve.append(min_ref_value)
+        max_reference_curve.append(max_ref_value)
         min_distance.append(d_min)                      # Append min distance to root
         max_distance.append(d_max)                      # Append max distance to root     
 
@@ -224,6 +226,7 @@ def run_pipeline(args):
     min_distance = np.array(min_distance)
     max_distance = np.array(max_distance)
     min_reference_curve = np.array(min_reference_curve)
+    max_reference_curve = np.array(max_reference_curve)
 
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
@@ -237,7 +240,8 @@ def run_pipeline(args):
     cand_info.dummy_lengths = dummy_lengths
 
     # Set information from candidates
-    cand_info.excess_strain = curve_measure-min_reference_curve
+    cand_info.curvature_nominator = curve_measure-min_reference_curve
+    cand_info.curvature_denominator = max_reference_curve-min_reference_curve
     cand_info.min_distance = min_distance
     cand_info.max_distance = max_distance
 
@@ -253,7 +257,8 @@ def run_pipeline(args):
     conflicts_list, merge_list , adj_list = conflicts.create()
 
     # 4.4 Compute offset for merged candidates and add merged curves to best curvatures per segment (ref_segment_strain or ref_segment_curvature)
-    offset_dict = {}
+    offset_nominator = {}
+    offset_denominator = {}
 
     for cand_i in range(len(merge_list)):
 
@@ -279,22 +284,26 @@ def run_pipeline(args):
                 ref_segment_curvature.add(c)
 
             curvature_offset =  merged_curve_measure - curve_measure[cand_i] - curve_measure[cand_j]
-            offset_dict[(cand_i,cand_j)] = curvature_offset
+            offset_nominator[(cand_i,cand_j)] = curvature_offset
 
     # Need to recalculate reference curvature for good candidates and for merged candidates
+    # because new merged candidates might have less curvature than old previous candidates
+
     # Recaluclate reference curvature for good candidates
     min_reference_curve = []
+    max_reference_curve = []
     for i,path in enumerate(good_candidates):
         if i%10000 == 0:
             print(' - Candidate '+str(i))
         c = candidates.Candidate(path, rh_segm.segments)
         if args.measure == 'strain_energy':
-            min_ref_value,_ = ref_segment_strain.calc(path, rh_segm.segments, c.segment_ids)
+            min_ref_value, max_ref_value = ref_segment_strain.calc(path, rh_segm.segments, c.segment_ids)
         else:
-            min_ref_value,_ = ref_segment_curvature.calc(path, rh_segm.segments, c.segment_ids)
+            min_ref_value, max_ref_value = ref_segment_curvature.calc(path, rh_segm.segments, c.segment_ids)
         min_reference_curve.append(min_ref_value)
+        max_reference_curve.append(max_ref_value)
     min_reference_curve = np.array(min_reference_curve)
-    cand_info.min_reference_strain = min_reference_curve
+    max_reference_curve = np.array(max_reference_curve)
 
     # Recaluclate information for merged candidates
     for cand_i in range(len(merge_list)):
@@ -311,11 +320,13 @@ def run_pipeline(args):
             c = candidates.Candidate(merged_path, rh_segm.segments)            
 
             if args.measure == 'strain_energy':
-                min_ref_value,_ = ref_segment_strain.calc(merged_path, rh_segm.segments, c.segment_ids)
+                min_ref_value, max_ref_value = ref_segment_strain.calc(merged_path, rh_segm.segments, c.segment_ids)
             else:
-                min_ref_value,_ = ref_segment_curvature.calc(merged_path, rh_segm.segments, c.segment_ids)
+                min_ref_value, max_ref_value = ref_segment_curvature.calc(merged_path, rh_segm.segments, c.segment_ids)
+            
             ref_value_offset = min_reference_curve[cand_i] + min_reference_curve[cand_j] - min_ref_value
-            offset_dict[(cand_i,cand_j)] += ref_value_offset
+            offset_nominator[(cand_i,cand_j)] += ref_value_offset # Add offset to curvature 
+            offset_denominator[(cand_i,cand_j)] =  max_reference_curve[cand_i] + max_reference_curve[cand_j] - max_ref_value
 
     """
     curves = []
@@ -323,8 +334,12 @@ def run_pipeline(args):
         c = candidates.Candidate(path, rh_segm.segments)
         c.fitCurve(is_dummy=False)
         curves.append(c.curve)
+    color_value = cand_info.curvature_nominator/cand_info.curvature_denominator
+    color_value[np.isinf(color_value)] = 0
+    color_value[np.isnan(color_value)] = 0
+    color_value[np.where(color_value<0)] = 0
+    rh_plot.plot_colored_candidates(curves, color_value, data, "/mnt/c/Projects/Roothair/Images/temp/") 
     """
-    #rh_plot.plot_colored_candidates(curves, np.array(curve_measure) - np.array(min_reference_curve), data, "/mnt/c/Projects/Roothair/Images/temp/") 
     #rh_plot.plot_colored_candidates(curves_array, excess_curvature_array, data, "/mnt/c/Projects/Roothair/Images/temp/merged_") 
     
 
@@ -352,7 +367,7 @@ def run_pipeline(args):
     optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
     
     # Run optimization
-    roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, offset_dict)
+    roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, offset_nominator, offset_denominator)
     solution_roothairs = [candidates.Candidate(path, rh_segm.segments) for path in roothair_paths]
 
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
