@@ -142,12 +142,24 @@ def run_pipeline(args):
     # 4.1 Gather data for dummies
     print('Gathering data for dummies...')
     dummy_lengths = []
+    dummy_min_dist = []
+    dummy_max_dist = []
     for path in all_dummies:
         d = candidates.Candidate(path, rh_segm.segments)
         d.fitCurve()
+        d_min, d_max = d.connectivity()
         dummy_lengths.append(d.length())
+        dummy_min_dist.append(d_min)
+        dummy_max_dist.append(d_max)
     # Dummy values
     dummy_lengths = np.array(dummy_lengths)
+    dummy_min_dist = np.array(dummy_min_dist)
+    dummy_max_dist = np.array(dummy_lengths)
+
+    if sum(dummy_min_dist<2) > 0: # Use dummies attached to root; take mean of their max distance to root  
+        normDistanceHigh = np.mean(dummy_max_dist[dummy_min_dist<2])
+    else:                         # If no dummies are attached to root, use mean of dummy lengths
+        normDistanceHigh = np.mean(dummy_lengths)
 
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
