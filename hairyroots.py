@@ -194,13 +194,17 @@ def run_pipeline(args):
         total_curvature.append(c.totalcurvature())      # Append total curvature of curve
 
     # Calculate reference curvature for each candidate and extract 
-    # only candidates with excess curvature < 90 degrees
+    # only candidates with total excess curvature < 180 degrees
+    # and maximum excess curvature per segment < 45 degrees
     min_reference_curvature = []
+    max_ref_curve_per_seg = []
     for i,path in enumerate(all_candidates):
         min_ref_value,_ = ref_segment_curvature.calc(path, rh_segm.segments, segment_ids[i])
         min_reference_curvature.append(min_ref_value)
-    candidate_filter = np.where( np.array(total_curvature) - np.array(min_reference_curvature) <= 0.5 * np.pi )[0]
-    good_candidates = [all_candidates[i] for i in candidate_filter]
+        max_diff_value = ref_segment_curvature.calc_max_difference(path, rh_segm.segments, ref_segment_curvature.curvatures_per_segment[i])
+        max_ref_curve_per_seg.append(max_diff_value)
+    candidate_filter = np.logical_and(np.array(max_ref_curve_per_seg) <= 0.25*np.pi, np.array(total_curvature) - np.array(min_reference_curvature) <= np.pi)
+    good_candidates = np.array(all_candidates)[candidate_filter] #[all_candidates[i] for i in candidate_filter]
     print('Keeping '+str(len(good_candidates))+' of '+str(n_candidates)+' candidates')
 
     # Get information for good candidates
