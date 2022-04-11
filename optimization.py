@@ -61,7 +61,6 @@ class Optimize():
             csMaker = CoolingScheduleMaker(state, costFunction=self.cost, initialProb=initialProb, finalProb=finalProb) # object to make cooling schedule
             csMaker.simulate(nIterationsInitalize*nCandidates)     # 20% of iterations in actual optimization
             normValuesRand = csMaker.normalization()                         # calculates avergae values of sub costs for normalization
-            self.cost.setNormValues(np.array([0.05,0.05,5.]),np.array([0.,0.,1.]))                          # first, set normalization value in cost function
             csMaker.recalculateCost()                                   # calculate costs with normalization
             csMaker.calculateUpwardCosts()                              # calculate average upword cost
             initialTemp = csMaker.getInitialTemp()                      # calculate initial temperature
@@ -791,11 +790,11 @@ class CostItemDifference(CostItems):
         return True
 
 class Cost:
-    def __init__(self, measure, cost_type, weights=[1., 1., 1.], normValuesHigh=np.array([1., 1., 1.]), normValuesLow=np.array([0., 0., 1.])):
+    def __init__(self, measure, cost_type, weights=[1., 1., 1.], normValuesLow=[0., 0., 0.], normValuesHigh=[1., 1., 1.]):
         self.measure = measure
         self.cost_type = cost_type
-        self.normValuesHigh = normValuesHigh
-        self.normValuesLow = normValuesLow
+        self.normValuesHigh = np.array(normValuesHigh)
+        self.normValuesLow = np.array(normValuesLow)
         self.weights = np.array(weights)
         sum_weights = np.sum(weights)
         self.weights = np.float_(weights)/sum_weights

@@ -160,6 +160,7 @@ def run_pipeline(args):
         normDistanceHigh = np.mean(dummy_max_dist[dummy_min_dist<2])
     else:                         # If no dummies are attached to root, use mean of dummy lengths
         normDistanceHigh = np.mean(dummy_lengths)
+    normDistanceLow = 1.0  # root hair is always at least one pixel away from root
 
     memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
     print('memory use:', round(memoryUse,4))
@@ -179,7 +180,6 @@ def run_pipeline(args):
 
     segment_ids = []
     total_curvature = []
-
     for i,path in enumerate(all_candidates):
         
         if i%10000 == 0:
@@ -206,6 +206,12 @@ def run_pipeline(args):
     candidate_filter = np.logical_and(np.array(max_ref_curve_per_seg) <= 0.25*np.pi, np.array(total_curvature) - np.array(min_reference_curvature) <= np.pi)
     good_candidates = np.array(all_candidates)[candidate_filter] #[all_candidates[i] for i in candidate_filter]
     print('Keeping '+str(len(good_candidates))+' of '+str(n_candidates)+' candidates')
+
+    # Normalization values for curvature metric
+    n_segments = np.array([(len(p)-1)/2 for p in all_candidates])
+    ids = np.array(total_curvature) - np.array(min_reference_curvature) > 0
+    normCurveHigh = np.mean((np.array(total_curvature)[ids] - np.array(min_reference_curvature)[ids]) / n_segments[ids])
+    normCurveLow = 0.0
 
     # Get information for good candidates
     lines = []
@@ -364,7 +370,9 @@ def run_pipeline(args):
 
     # Set weights for optimization and initilize cost object
     weights = [args.w_curve, args.w_len, args.w_mind]
-    costCalculator = optimization.Cost(measure=args.measure , cost_type=args.cost_type, weights=weights)
+    normValuesLow = [normCurveLow, 0.0, normDistanceLow]
+    normValuesHigh = [normCurveHigh, 1.0, normDistanceHigh]
+    costCalculator = optimization.Cost(measure=args.measure , cost_type=args.cost_type, weights=weights,normValuesLow=normValuesLow, normValuesHigh=normValuesHigh)
     optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
     
     # Run optimization
