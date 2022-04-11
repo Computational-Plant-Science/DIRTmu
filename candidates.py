@@ -457,6 +457,7 @@ class ReferenceValues:
     def __init__(self,measure='curvature', use_ref_tips=False):
         self.min = {}
         self.max = {}
+        self.curvatures_per_segment = []
         self.use_ref_tips = use_ref_tips
         if measure=='curvature':
             self.measure = 1
@@ -477,6 +478,7 @@ class ReferenceValues:
             value_list = tc * tc * l
         
         size_path = len(candidate.path) 
+        curvatures = []
         for i,p in enumerate(candidate.path):
             segment = candidate.segments[p]
 
@@ -486,7 +488,7 @@ class ReferenceValues:
                 ids = np.array([ind for i in sub_path for ind in range(candidate.segment_ids[i][0], candidate.segment_ids[i][1])])
 
                 value_sum = sum(value_list[ids])
-                
+                curvatures.append(value_sum)
 
                 if self.use_ref_tips:
                     identifier = [p]
@@ -522,6 +524,7 @@ class ReferenceValues:
                     self.max[identifier] = max(value_sum, self.max[identifier])
                 else:
                     self.max[identifier] = value_sum
+        self.curvatures_per_segment.append(curvatures)
 
                     
     def mean_of_minima(self):
@@ -593,6 +596,48 @@ class ReferenceValues:
         
         return min_value, max_value
 
+    def calc_max_difference(self, path, segments, curvatures):
+        # For each segment (type=2) calculates excess curvature and returns the maximum value
+        max_value = 0.0
+
+        size_path = len(path) 
+        for i,p in enumerate(path):
+            segment = segments[p]
+
+            if segment.type == 2:
+                curvature = curvatures.pop(0)
+                # sub_path = [i-1,i]
+                # ids = np.array([ind for i in sub_path for ind in range(segment_ids[i][0], segment_ids[i][1])])
+
+                if self.use_ref_tips:
+                    identifier = [p]
+
+                    if i-1 == 0: # if previous segment is first segment
+                        pre = path[i-1]
+                    else:
+                        pre = None
+
+                    if i+1 == size_path-1: # if next segment is last segment
+                        post = path[i+1]
+                    else:
+                        post = None
+
+                    if pre is not None and post is not None:
+                        identifier.append(min(pre, post))
+                        identifier.append(max(pre, post))
+                    elif pre is not None:
+                        identifier.append(pre)
+                    elif post is not None:
+                        identifier.append(post)
+                    
+                    identifier = tuple(identifier)
+                else:
+                    identifier = p
+
+                now_value = curvature-self.min[identifier]
+                if now_value > max_value:
+                    max_value = now_value
+        return max_value
     
 class Conflicts:
     def __init__(self, paths, lines, segment_ids, segments, data):
