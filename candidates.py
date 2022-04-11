@@ -524,6 +524,31 @@ class ReferenceValues:
                     self.max[identifier] = value_sum
 
                     
+    def mean_of_minima(self):
+        if self.use_ref_tips:
+            min_vals = {}
+            for key, item in self.min.items():
+                if key[0] in min_vals:
+                    min_vals[key[0]] = min(item, min_vals[key[0]])
+                else:
+                    min_vals[key[0]] = item
+            return np.mean(list(min_vals.values()))
+        else:
+            return np.mean(list(self.min.values()))
+
+    def mean_of_maxima(self):
+        if self.use_ref_tips:
+            max_vals = {}
+            for key, item in self.max.items():
+                if key[0] in max_vals:
+                    max_vals[key[0]] = min(item, max_vals[key[0]])
+                else:
+                    max_vals[key[0]] = item
+            return np.mean(list(max_vals.values()))
+        else:
+            return np.mean(list(self.max.values()))
+
+                    
     def calc(self, path, segments, segment_ids):
 
         min_value = 0.0
