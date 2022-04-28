@@ -18,12 +18,13 @@ import dynamic_connectivity as dc
 
 
 class Optimize():
-    def __init__(self, cost=None, nIterations=200):
+    def __init__(self, cost=None, nIterations=1000, n_repeats=3):
         self.T_start = 1.0
         self.T_min = 0.000000001
         self.cost = cost
         self.nIterations = nIterations
-        
+        self.n_repeats = n_repeats
+
     def run(self, candInfo, conflictList, mergeList, adjacencyList, dummyConflictsList, offset_dict):
         
         pid = os.getpid()
@@ -72,7 +73,7 @@ class Optimize():
             print("averageCost:"+str(averageCost), "averageDeltaCost: "+str(csMaker.averageDeltaCost()), ", initialTemp: ", str(initialTemp), ", finalTemp: ", str(finalTemp), ", alpha: ", str(alpha))
 
             # Initialize Simulated Annealing object
-            sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, costFunction=self.cost)
+            sa = SimulatedAnnealing(initialState=state, initalTemp=initialTemp, finalTemp=finalTemp, averageCost=averageCost, alpha=alpha, maxLevels=maxLevels, n_repeats=self.n_repeats ,costFunction=self.cost)
 
             memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
             print(' - memory use: '+ str(round(memoryUse,4)))
@@ -157,14 +158,15 @@ def shuffleState(state, n=100):
             continue
 
 class SimulatedAnnealing:
-    def __init__(self, initialState, initalTemp, finalTemp, averageCost, alpha, maxLevels, costFunction):
+    def __init__(self, initialState, initalTemp, finalTemp, averageCost, alpha, maxLevels, n_repeats, costFunction):
                 
         self.state = initialState
-        self.currTemp = initalTemp
+        self.initalTemp = initalTemp
         self.finalTemp = finalTemp
         self.averageCost = averageCost
         self.alpha = alpha
         self.maxLevels = maxLevels
+        self.n_repeats = n_repeats
         self.costFunction = costFunction
 
         self.iterationsPerTemp = len(self.state.candInfo.paths) # Number of iterations per temperature level
@@ -193,67 +195,70 @@ class SimulatedAnnealing:
         #metrics_arr = [bestMetricsNorm]                         # List with all metrics
 
         
+        for rep in range(self.n_repeats):
 
-        n_iterations = 0 
+            currTemp = self.initalTemp
+            n_iterations = 0 
+            self.R = 0
 
-        print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                    + str([round(c,3) for c in metricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
+            print(" - " + str([rep, n_iterations, "{0:.2E}".format(currTemp), round(cost,5), round(best_cost,5)]) \
+                        + str([round(c,3) for c in metricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
 
-        while (self.currTemp > self.finalTemp or self.R < self.R_max) and n_iterations < self.maxLevels: # T must be less than finalTemp and R must be larger than R_max to stop
+            while (currTemp > self.finalTemp or self.R < self.R_max) and n_iterations < self.maxLevels: # T must be less than finalTemp and R must be larger than R_max to stop
 
-            for _ in range(self.iterationsPerTemp):
+                for _ in range(self.iterationsPerTemp):
 
-                # Get position (component id) to be changed
-                position = random.randint(0,len(self.state.binaryList)-1)
+                    # Get position (component id) to be changed
+                    position = random.randint(0,len(self.state.binaryList)-1)
 
-                # Change current solution
-                isvalid = self.state.neighbor(position)
+                    # Change current solution
+                    isvalid = self.state.neighbor(position)
 
-                # If is invalid reverse and skip
-                if not isvalid:
-                    self.state.reverseChanges()
-                    continue
-                
-                # Calculate cost for current state
-                metrics = self.costFunction.calculateMetrics(self.state)
-                newMetricsNorm = self.costFunction.normalizeMetrics(metrics)
-                new_cost = self.costFunction.calculateCost(newMetricsNorm)
-                
-                
-
-                # Acceptance probability
-                ap = self.probability(self.averageCost, cost, new_cost, self.currTemp)
-            
-                # If acceptance probability is larger than random value between 0. and 1.
-                if ap > random.random():
-                    self.R = 0                      # Reset number of rejected moves
-                    cost = new_cost                 # Cost is updated
-
-                    if new_cost < best_cost:            # New cost is better than overall best cost
-                        best_sol = np.array(self.state.binaryList)      # Update best solution
-                        best_cost = new_cost                            # Update best cost
-                        best_metrics = metrics
-                        bestMetricsNorm = newMetricsNorm                # Update best metrics
+                    # If is invalid reverse and skip
+                    if not isvalid:
+                        self.state.reverseChanges()
+                        continue
                     
-                    # Uncomment for plotting all accepted states:
-                    #solutions_arr.append(np.where(self.state.binaryList)[0])
-                    #cost_arr.append(new_cost)
-                    #metrics_arr.append(newMetricsNorm)
+                    # Calculate cost for current state
+                    metrics = self.costFunction.calculateMetrics(self.state)
+                    newMetricsNorm = self.costFunction.normalizeMetrics(metrics)
+                    new_cost = self.costFunction.calculateCost(newMetricsNorm)
+                    
+                    
 
-                else:
-                    self.state.reverseChanges()
-                    self.R += 1                     # Increase number of consecutive rejeced moves
-                if self.R >= self.R_max and self.currTemp <= self.finalTemp:
-                    break
+                    # Acceptance probability
+                    ap = self.probability(self.averageCost, cost, new_cost, currTemp)
+                
+                    # If acceptance probability is larger than random value between 0. and 1.
+                    if ap > random.random():
+                        self.R = 0                      # Reset number of rejected moves
+                        cost = new_cost                 # Cost is updated
 
-            # Reduce temperature
-            self.currTemp = self.currTemp*self.alpha
-                                
-            # Increase number of iterations
-            n_iterations += 1
+                        if new_cost < best_cost:            # New cost is better than overall best cost
+                            best_sol = np.array(self.state.binaryList)      # Update best solution
+                            best_cost = new_cost                            # Update best cost
+                            best_metrics = metrics
+                            bestMetricsNorm = newMetricsNorm                # Update best metrics
+                        
+                        # Uncomment for plotting all accepted states:
+                        #solutions_arr.append(np.where(self.state.binaryList)[0])
+                        #cost_arr.append(new_cost)
+                        #metrics_arr.append(newMetricsNorm)
 
-            print(" - " + str([n_iterations, "{0:.2E}".format(self.currTemp), round(cost,5), round(best_cost,5)]) \
-                        + str([round(c,3) for c in bestMetricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
+                    else:
+                        self.state.reverseChanges()
+                        self.R += 1                     # Increase number of consecutive rejeced moves
+                    if self.R >= self.R_max and currTemp <= self.finalTemp:
+                        break
+
+                # Reduce temperature
+                currTemp = currTemp*self.alpha
+                                    
+                # Increase number of iterations
+                n_iterations += 1
+
+                print(" - " + str([rep, n_iterations, "{0:.2E}".format(currTemp), round(cost,5), round(best_cost,5)]) \
+                            + str([round(c,3) for c in bestMetricsNorm]) + " " + str(int(round(100*float(self.R)/self.R_max))) + "%")
 
         ratio_complete = 1.-best_metrics[1]
         # Uncomment for plotting images:

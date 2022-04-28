@@ -373,7 +373,7 @@ def run_pipeline(args):
     normValuesLow = [normCurveLow, 0.0, normDistanceLow]
     normValuesHigh = [normCurveHigh, 1.0, normDistanceHigh]
     costCalculator = optimization.Cost(measure=args.measure , cost_type=args.cost_type, weights=weights,normValuesLow=normValuesLow, normValuesHigh=normValuesHigh)
-    optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels) 
+    optimizer = optimization.Optimize(cost=costCalculator, nIterations=args.n_levels, n_repeats=args.n_repeats) 
     
     # Run optimization
     roothair_paths, solution_summary, sa_parameters = optimizer.run(cand_info, conflicts_list, merge_list, adj_list, rh_dummy_conflicts_list, offset_dict)
@@ -545,7 +545,10 @@ def main():
                         help="Way to summarize optimization objectives.")
 
     parser.add_argument("--n_levels", dest="n_levels", type=int, required=False,
-                        default=200, help="Minimum number of iteration levels for optimization.")
+                        default=1000, help="Minimum number of iteration levels for optimization.")
+
+    parser.add_argument("--n_repeats", dest="n_repeats", type=int, required=False,
+                        default=3, help="Number of times simulated annealing is repeated.")
 
     parser.add_argument('--use_ref_tips', dest='use_ref_tips', action='store_true',
                             help="Treat tips separately from non-tips for referance values.")
