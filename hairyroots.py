@@ -537,7 +537,7 @@ def main():
     Optimization parameters
     '''
     parser.add_argument("--measure", dest="measure", type=str, required=False,
-                        default='strain_energy', choices=['strain_energy', 'total_curvature'], 
+                        default='total_curvature', choices=['strain_energy', 'total_curvature'], 
                         help="Type of curvature measure")
     
     parser.add_argument("--cost_type", dest="cost_type", type=str, required=False,
@@ -548,7 +548,7 @@ def main():
                         default=1000, help="Minimum number of iteration levels for optimization.")
 
     parser.add_argument("--n_repeats", dest="n_repeats", type=int, required=False,
-                        default=3, help="Number of times simulated annealing is repeated.")
+                        default=1, help="Number of times simulated annealing is repeated.")
 
     parser.add_argument('--use_ref_tips', dest='use_ref_tips', action='store_true',
                             help="Treat tips separately from non-tips for referance values.")
