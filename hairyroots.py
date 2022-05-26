@@ -210,7 +210,7 @@ def run_pipeline(args):
     # Normalization values for curvature metric
     n_segments = np.array([(len(p)-1)/2 for p in all_candidates])
     ids = np.array(total_curvature) - np.array(min_reference_curvature) > 0
-    normCurveHigh = np.mean((np.array(total_curvature)[ids] - np.array(min_reference_curvature)[ids]) / n_segments[ids])
+    normCurveHigh = np.mean((np.array(total_curvature)[ids] - np.array(min_reference_curvature)[ids]))# / n_segments[ids])
     normCurveLow = 0.0
 
     # Get information for good candidates

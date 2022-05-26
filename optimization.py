@@ -736,7 +736,7 @@ class CostItemDifference(CostItems):
                     s_remove += offset_dict[(min(first, second),max(first, second))]
             if s_remove < 0:
                 s_remove = 0.0
-            s_remove_total += (s_remove / len_remove)**2 # TODO: should use square **2; take root at end when calculating cost
+            s_remove_total += s_remove**2 # TODO: should use square **2; take root at end when calculating cost
 
         s_add_total = 0.
         for c in comp_add:
@@ -747,7 +747,7 @@ class CostItemDifference(CostItems):
                     s_add += offset_dict[(min(first, second),max(first, second))]
             if s_add < 0:
                 s_add = 0.0
-            s_add_total += (s_add / len_add)**2 # TODO: should use square **2; take root at end when calculating cost
+            s_add_total += s_add**2 # TODO: should use square **2; take root at end when calculating cost
 
         
         # Curvature measure
