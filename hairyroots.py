@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 '''
 ----------------------------------------------------------------------------------------------------
-HairyRoots 1.0 - An automatic high throughput root hair phenotyping algorithm
+DIRT/mu 1.1 - An automatic high throughput root hair phenotyping algorithm
 
 The software is written in:
-- python 2.7 (https://www.python.org)
+- python 3.9.10 (https://www.python.org)
 
 The software depends on:
 - the numpy package (http://sourceforge.net/projects/numpy/)
