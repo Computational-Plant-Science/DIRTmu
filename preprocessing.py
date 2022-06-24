@@ -113,6 +113,7 @@ class Preprocessing:
     def removeFarRootHairs(self, img, max_distance=10, id_root=1, id_background=2, id_roothair=3):
         # Removes components of root hair components (connected components) if their distance to the root is larger than max_distance
         # i.e. floating root hair pixels (such as from noisy classification) are removed
+        # If there is no root edge, then return original image
         
         roothairImg = np.zeros_like(img)
         roothairPos = np.where(img==id_roothair)
@@ -262,8 +263,9 @@ class Preprocessing:
         '''
         edge = self.find_edge(classes, id_root)       # pixel coordinates of edge of main root
         skel_dist_to_edge = np.zeros(skel.shape)
-        if len(edge) > 0:
-            skelCoords = list(zip(*np.where(skel)))   # pixel coordinates of medial axis
+        skelCoords = list(zip(*np.where(skel)))       # pixel coordinates of medial axis
+
+        if len(edge) > 0 and len(skelCoords) > 0:
             nbrs = NearestNeighbors(n_neighbors=1)
             nbrs.fit(edge)
             # distance to edge and indices (location in 'edge')

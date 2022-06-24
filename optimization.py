@@ -120,25 +120,46 @@ class Optimize():
         memoryUse = py.memory_info()[0]/2.**30  # memory use in GB...I think
         print(' - memory use: '+ str(round(memoryUse,4)))
         
-        sa_parameters = {'SA_finalProb':finalProb,
-                         'SA_initialProb':initialProb,
-                         'SA_randCurvature': normValuesRand[0],
-                         'SA_randLength': normValuesRand[1],
-                         'SA_randDistance': normValuesRand[2],
-                         'SA_initialTemp': initialTemp,
-                         'SA_alpha': alpha,
-                         'SA_finalTemp': finalTemp,
-                         'SA_randCost': averageCost,
-                         'SA_nIterations': n_iterations,
-                         'SA_weightCurvature': self.cost.weights[0],
-                         'SA_weightLength': self.cost.weights[1],
-                         'SA_weightDistance': self.cost.weights[2]}
+        try:
+            sa_parameters = {'SA_finalProb':finalProb,
+                            'SA_initialProb':initialProb,
+                            'SA_randCurvature': normValuesRand[0],
+                            'SA_randLength': normValuesRand[1],
+                            'SA_randDistance': normValuesRand[2],
+                            'SA_initialTemp': initialTemp,
+                            'SA_alpha': alpha,
+                            'SA_finalTemp': finalTemp,
+                            'SA_randCost': averageCost,
+                            'SA_nIterations': n_iterations,
+                            'SA_weightCurvature': self.cost.weights[0],
+                            'SA_weightLength': self.cost.weights[1],
+                            'SA_weightDistance': self.cost.weights[2]}
 
-        solution_summary = {'SA_resultCost':best_cost,
-                         'SA_resultCurvature': bestMetrics[0],
-                         'SA_resultLength': bestMetrics[1],
-                         'SA_resultDistance': bestMetrics[2],
-                         'SA_resultRatioComplete': ratio_complete}
+            solution_summary = {'SA_resultCost':best_cost,
+                            'SA_resultCurvature': bestMetrics[0],
+                            'SA_resultLength': bestMetrics[1],
+                            'SA_resultDistance': bestMetrics[2],
+                            'SA_resultRatioComplete': ratio_complete}
+        except:
+            sa_parameters = {'SA_finalProb':np.nan,
+                            'SA_initialProb':np.nan,
+                            'SA_randCurvature': np.nan,
+                            'SA_randLength': np.nan,
+                            'SA_randDistance': np.nan,
+                            'SA_initialTemp': np.nan,
+                            'SA_alpha': np.nan,
+                            'SA_finalTemp': np.nan,
+                            'SA_randCost': np.nan,
+                            'SA_nIterations': np.nan,
+                            'SA_weightCurvature': np.nan,
+                            'SA_weightLength': np.nan,
+                            'SA_weightDistance': np.nan}
+
+            solution_summary = {'SA_resultCost':np.nan,
+                            'SA_resultCurvature': np.nan,
+                            'SA_resultLength': np.nan,
+                            'SA_resultDistance': np.nan,
+                            'SA_resultRatioComplete': np.nan}
 
         return roothair_paths, solution_summary, sa_parameters
 
