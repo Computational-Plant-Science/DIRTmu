@@ -280,7 +280,26 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
     print('DIRT/mu-Roothair density estimation')
 
     pixel_size = float(pixel_size) # pixel size in microns per pixel
-    window_size = 1000 # sys.argv[4]  # sliding window size in microns (=1000)
+    window_size = 1000 # sliding window size in microns (=1000)
+
+    # Check if root exists. Else retrun NaN values
+    if rootIdx not in labelImg:
+        print("No root found in image! Root index dose not correspond to any pixel in image.")
+        rhClass = [np.nan for val in roothair]
+        rhPositions = [np.nan for val in roothair]
+        results = {"RH Count Total":len(roothair), 
+                "RH Count Bottom":np.nan,
+                "RH Count Top":np.nan,
+                "RH Count Max": np.nan,
+                "RH Count Min": np.nan,
+                "RH Count Mean": np.nan,
+                "RH Count Std": np.nan,
+                "Edge Length Total (mu):":np.nan,
+                "Edge Length Bottom (mu)":np.nan,
+                "Edge Length Top (mu)":np.nan,
+                "Window size (mu)":window_size,
+                "Root Diameter (mu)":np.nan}
+        return results, rhClass, rhPositions, {"closestSegments":[np.nan], "edge_classes":[np.nan], "edge_segments":[np.nan], "edge_position":[np.nan]}
 
     mainRootImg, latRootImg, root_diameter = segmentRootComponents(labelImg, rootIdx)
 

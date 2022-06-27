@@ -14,4 +14,4 @@ def load(path):
     return np.array(image)
 
 def save_table(table,path_name):
-    table.to_csv(path_name, index=False)
+    table.to_csv(path_name, index=False, na_rep='NA')
