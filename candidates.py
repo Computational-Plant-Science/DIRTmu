@@ -258,13 +258,37 @@ class Candidate:
     
     def length_total(self):
         tip_length = 0.
-        if len(self.diameter) == 1 and self.pixel_type[0]==1:
-            tip_length += self.diameter[0]/2.0
-        else:
-            if self.pixel_type[0]==1:
-                tip_length += self.diameter[0]/2.0 
-            if self.pixel_type[-1]==1:
-                self.diameter[-1]/2.0
+        first, last = self.connectivity2() # distance to root at first and last pixel
+
+        if len(self.diameter) == 1 and self.pixel_type[0]==1: 
+        # If root hair is single pixel and a tip
+            if first==0 and last==0:   
+            # If no root exits, length equals diameter
+                tip_length += self.diameter[0] 
+            else: 
+            # Root exists. Length equals radius + distance to root
+                tip_length += self.diameter[0]/2
+                tip_length += first     
+        else: 
+        # If root hair is longer than one pixel
+            if first==0 and last==0: 
+            # If no root exits
+                if self.pixel_type[0]==1:                   # Add medial axis radius from end point if end points are tips
+                    tip_length += self.diameter[0]/2.0 
+                if self.pixel_type[-1]==1:
+                    tip_length += self.diameter[-1]/2.0
+            else: 
+            # Else root exists
+                if first < last: 
+                # If first pixel is closer to root
+                    tip_length += first                     # Add distance between first pixel and root to total length
+                    if self.pixel_type[-1]==1: 
+                        tip_length += self.diameter[-1]/2.0 # Add medial axis radius from last point; only if last pixel is tip
+                else: 
+                # Else last pixel is closer to root
+                    tip_length += last                      # Add distance between last pixel and root to total length
+                    if self.pixel_type[0]==1: 
+                        tip_length += self.diameter[0]/2.0  # Add medial axis radius from first point; only if first pixel is tip
 
         return self.length() + tip_length
         
@@ -304,10 +328,21 @@ class Candidate:
         return max(abs(self.curve.curvature()))
     
     def connectivity(self):
+        """
+        Returns min and max distance to root of first and last pixels
+        """
         d1 = self.segments[self.path[0]].minDistToEdge
         d2 = self.segments[self.path[-1]].minDistToEdge
         return min(d1,d2), max(d1,d2)
-        
+
+    def connectivity2(self):
+        """
+        Returns distance to root of first and last pixels
+        """
+        first = self.segments[self.path[0]].minDistToEdge
+        last = self.segments[self.path[-1]].minDistToEdge
+        return first, last
+
     def length2diameter(self):
         try:
             return self.length_total()/self.median_diameter()
