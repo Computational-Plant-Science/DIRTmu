@@ -260,8 +260,8 @@ class Candidate:
         tip_length = 0.
         first, last = self.connectivity2() # distance to root at first and last pixel
 
-        if len(self.diameter) == 1 and self.pixel_type[0]==1: 
-        # If root hair is single pixel and a tip
+        if len(self.diameter) == 1: 
+        # If root hair is single pixel
             if first==0 and last==0:   
             # If no root exits, length equals diameter
                 tip_length += self.diameter[0] 
@@ -273,22 +273,18 @@ class Candidate:
         # If root hair is longer than one pixel
             if first==0 and last==0: 
             # If no root exits
-                if self.pixel_type[0]==1:                   # Add medial axis radius from end point if end points are tips
-                    tip_length += self.diameter[0]/2.0 
-                if self.pixel_type[-1]==1:
-                    tip_length += self.diameter[-1]/2.0
+                tip_length += self.diameter[0]/2.0 
+                tip_length += self.diameter[-1]/2.0
             else: 
             # Else root exists
                 if first < last: 
                 # If first pixel is closer to root
                     tip_length += first                     # Add distance between first pixel and root to total length
-                    if self.pixel_type[-1]==1: 
-                        tip_length += self.diameter[-1]/2.0 # Add medial axis radius from last point; only if last pixel is tip
+                    tip_length += self.diameter[-1]/2.0     # Add medial axis radius from last point
                 else: 
                 # Else last pixel is closer to root
                     tip_length += last                      # Add distance between last pixel and root to total length
-                    if self.pixel_type[0]==1: 
-                        tip_length += self.diameter[0]/2.0  # Add medial axis radius from first point; only if first pixel is tip
+                    tip_length += self.diameter[0]/2.0  # Add medial axis radius from first point
 
         return self.length() + tip_length
         
