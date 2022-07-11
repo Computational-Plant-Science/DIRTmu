@@ -7,8 +7,8 @@ image: docker://computationalplantscience/dirtmu
 logo: DIRTX-mu.png
 commands: python3 /opt/code/hairyroots.py -i $INPUT -o $OUTPUT --n_levels $N_LEVELS --w_mind $W_MIND --w_len $W_LEN --w_curve $W_CURVE --id_root $ID_ROOT --id_background $ID_BACKGROUND --id_roothair $ID_ROOTHAIR -p --pixel_size $PIXEL_SIZE
 jobqueue:
-  walltime: "10:00:00"
-  memory: "20GB"
+  walltime: "24:00:00"
+  memory: "32GB"
   processes: 1
   cores: 4
 input:
@@ -27,10 +27,10 @@ output:
 params:
   - name: n_levels                      # number of levels for simulated annealing
     type: number
-    default: 200
-    step: 1
-    min: 1
-    max: 1000
+    default: 1000
+    step: 100
+    min: 100
+    max: 2000
   - name: w_mind                        # weight for minimum distance
     type: number
     default: 1
