@@ -6,12 +6,6 @@ USER root
 RUN apt-get update && apt-get install -y python3-tk curl bzip2
 USER $MAMBAUSER
 
-# install ilastik
-WORKDIR /opt/ilastik
-RUN curl -O https://files.ilastik.org/ilastik-1.4.0b27post1-gpu-Linux.tar.bz2 && \
-    tar xjf /opt/ilastik/ilastik-1.4.0b27post1-gpu-Linux.tar.bz2 && \
-    rm /opt/ilastik/ilastik-1.4.0b27post1-gpu-Linux.tar.bz2
-
 # copy source and configure conda environment
 WORKDIR /opt/code
 COPY . /opt/code
