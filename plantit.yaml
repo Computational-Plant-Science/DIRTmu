@@ -36,37 +36,37 @@ params:
     default: 1
     step: 1
     min: 0
-    max: 10
+    max: 100
   - name: w_len                         # weight for length (=completeness)
     type: number
     default: 1
     step: 1
     min: 0
-    max: 10
+    max: 100
   - name: w_curve                       # weight for curvature
     type: number
     default: 1
     step: 1
     min: 0
-    max: 10
+    max: 100
   - name: id_root                       # index for root pixels
     type: number
     default: 3
     step: 1
     min: 0
-    max: 10
+    max: 255
   - name: id_background                 # index for image background
     type: number
     default: 2
     step: 1
     min: 0
-    max: 10
+    max: 255
   - name: id_roothair                   # index for root hair pixels
     type: number
     default: 1
     step: 1
     min: 0
-    max: 10
+    max: 255
   - name: pixel_size                    # scale of microscopy image
     type: number
     default: 1
