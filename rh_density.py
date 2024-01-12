@@ -408,7 +408,7 @@ def computeDensity(labelImg, roothair, rootIdx, pixel_size):
 
     return results, rhClass, rhPositions, {"closestSegments":closestSegments, "edge_classes":edge_classes, "edge_segments":edge_segments, "edge_position":edge_position}
 
-def plotDensity(roothair, labelImg, closestSegments, edge_classes, edge_segments, edge_position, output_path):
+def plotDensity(roothair, labelImg, closestSegments, edge_classes, edge_segments, edge_position, output_path, linewidth=1):
     """
     Plots edges of root with corresponding root hairs
     """
@@ -428,22 +428,22 @@ def plotDensity(roothair, labelImg, closestSegments, edge_classes, edge_segments
         if edge_classes[contourID]=='main':
             rgba = plt.cm.Spectral(float(np.clip(randOrder[counter], 0, n_components))/n_components)
             rgb = rgba[0:3]
-            ax.plot(rh.y, rh.x, color=rgb, linewidth=0.5)
+            ax.plot(rh.y, rh.x, color=rgb, solid_capstyle='round', linewidth=linewidth)
         else:
-            ax.plot(rh.y, rh.x, 'r', linewidth=0.5)
+            ax.plot(rh.y, rh.x, 'r', solid_capstyle='round', linewidth=linewidth)
 
     # Plot countour lines
     for ind, seg in enumerate(edge_segments):
         x, y = smooth(seg[:, 0], seg[:, 1])
         if edge_classes[ind]=='main':
             if edge_position[ind] == 'top':
-                ax.plot(y, x, 'g', linewidth=0.5)
+                ax.plot(y, x, 'g', solid_capstyle='round', linewidth=linewidth)
             elif edge_position[ind] == 'bottom':
-                ax.plot(y, x, 'b', linewidth=0.5)
+                ax.plot(y, x, 'b', solid_capstyle='round', linewidth=linewidth)
             else:
-                ax.plot(y, x, 'm', linewidth=0.5)
+                ax.plot(y, x, 'm', solid_capstyle='round', linewidth=linewidth)
         else: 
-            ax.plot(y, x, 'r', linewidth=0.5)
+            ax.plot(y, x, 'r', solid_capstyle='round', linewidth=linewidth)
 
     #filename, file_extension = os.path.splitext(filename)
     fig.savefig(output_path, dpi=600, bbox_inches='tight')

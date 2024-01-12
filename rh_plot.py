@@ -21,7 +21,7 @@ def plot_two_curves(rh1, rh2, data, path):
 
     fig.savefig(path,dpi=50, bbox_inches='tight')
 
-def plot_results(curves, data, path):
+def plot_results(curves, data, path, linewidth=1):
 
     n_components = len(curves)
 
@@ -37,10 +37,10 @@ def plot_results(curves, data, path):
     for counter, rh in enumerate(curves):
         rgba = plt.cm.Spectral(float(np.clip(randOrder[counter], 0, n_components))/n_components)
         rgb = rgba[0:3]
-        ax.plot(rh.y, rh.x, color=rgb, linewidth=0.5)
-
-    ax.set_xlim((0,data.shape[1]))
-    ax.set_ylim((data.shape[0],0))
+        ax.plot(rh.y, rh.x, color=rgb, linewidth=linewidth)
+    print(data.size)
+    ax.set_xlim((0,data.size[0]))
+    ax.set_ylim((data.size[1],0))
 
     fig.savefig(path,dpi=300, bbox_inches='tight')
 

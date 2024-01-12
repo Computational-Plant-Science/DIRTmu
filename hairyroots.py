@@ -446,13 +446,14 @@ def run_pipeline(args):
     # 9. Plot results
     # ******************
     time_intermediate = time.time()
+    background = Image.open(args.background_path)
     if args.print_all:
-        rh_plot.plot_results([c.curve for c in inliers], data, os.path.join(args.output_path, experiment_name+'_roothairs.png'))
-        rh_plot.plot_results([c.curve for c in outliers], data, os.path.join(args.output_path, experiment_name+'_outliers.png'))
+        rh_plot.plot_results([c.curve for c in inliers], background, os.path.join(args.output_path, experiment_name+'_roothairs.png'), linewidth = args.linewidth)
+        rh_plot.plot_results([c.curve for c in outliers], background, os.path.join(args.output_path, experiment_name+'_outliers.png'), linewidth = args.linewidth)
         if args.id_root in data: # Only if root exists
-            rh_density.plotDensity([rh.curve for rh in inliers], data, edge_info['closestSegments'], 
+            rh_density.plotDensity([rh.curve for rh in inliers], background, edge_info['closestSegments'], 
                                     edge_info['edge_classes'], edge_info['edge_segments'], 
-                                    edge_info['edge_position'],  os.path.join(args.output_path, experiment_name+'_density.png'))
+                                    edge_info['edge_position'],  os.path.join(args.output_path, experiment_name+'_density.png'), linewidth = args.linewidth)
 
     elapsed_time = time.time() - time_intermediate
     meta_data['time_plot'] = elapsed_time
@@ -496,7 +497,11 @@ def main():
     parser.add_argument("-i","--in", dest="input_path", type=str, required=False,
                         default='TAKFA1-c1-1_Classes.tiff', 
                         help="tiff input file")
-
+    
+    parser.add_argument("-b","--background", dest="background_path", type=str, required=False,
+                        default='TAKFA1-c1-1_Classes.tiff', 
+                        help="tiff input file")
+    
     parser.add_argument("-o","--out", dest="output_path", type=str, required=False,
                         default='samples/', help="csv output filename")
 
@@ -505,7 +510,10 @@ def main():
 
     parser.add_argument("--pixel_size", dest="pixel_size", type=float, required=False,
                         default=1, help="pixel size in microns per pixel")           # Default is 1
-
+    
+    parser.add_argument("-lw", "--linewidth", dest="linewidth", type=float, required=False,
+                        default=1, help="Linewidth for plots")
+    
     '''
     Indices for root. background, root hair
     '''
